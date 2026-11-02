@@ -90,6 +90,7 @@ textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:
 <div class="stats" id="stats"></div>
 <div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="stats" id="wsum"></div><div id="wbody"></div></div>
 <details id="nokeyBox" class="t-stat" open><summary><span class="nm">⏳ 尚未 Key 申報清單</span><span class="tag">勾選即視為已 Key</span></summary><div class="body"><div id="nkl"></div></div></details>
+<details id="twBox" class="t-stat" open><summary><span class="nm">📍 各鄉鎮市服務人次</span></summary><div class="body"><div class="row"><div><label>起始月</label><input type="month" id="tms" placeholder="2026-11"></div><div><label>結束月</label><input type="month" id="tme" placeholder="2026-11"></div></div><div class="tw" id="twtab" style="margin-top:10px"></div><div class="note">人次＝該期間內各個案的服務次數加總（例：2 位個案各服務 2 次＝4 人次）。鄉鎮市依住址判斷，住址沒寫到鄉鎮市的會歸在「未分類」。只計算已登記的服務紀錄。</div></div></details>
 <details id="monthBox" class="t-stat" open><summary><span class="nm">📅 每月服務次數</span></summary><div class="body"><div class="tw" id="mtab"></div><div class="note" id="mnote"></div><div class="gh">預估後續各月可申報次數</div><div class="tw" id="etab"></div><div class="row" style="margin-top:8px"><div style="width:200px"><label>沒有間隔資料時，預設服務間隔（天）</label><input id="eiv" type="number" min="1" value="7"></div></div><div class="note" id="enote"></div>
 <div class="gh">各服務代碼每組次數（滿一組才可申報；數字可自行修改）</div><div id="csz" class="row"></div></div></details>
 
@@ -197,6 +198,14 @@ function render(){
   cases.forEach(function(c){var k=c.visits.filter(inR).length;rt+=k;if(k)rcn++});
   $('rsum').textContent=rl+'：共服務 '+rt+' 次，涉及 '+rcn+' 位個案（每位個案的次數見卡片標籤）';
   $('tabs').querySelector('[data-tab="stat"]').textContent='📋 申報與統計'+(totNo?' ('+totNo+')':'');
+  var ts=$('tms').value,te=$('tme').value,tg={},tT=0,tC=0;
+  cases.forEach(function(c){
+    var k=c.visits.filter(function(v){var m=v.date.slice(0,7);return(!ts||m>=ts)&&(!te||m<=te)}).length;
+    if(!k)return;
+    var t=tw(c.addr),o=tg[t]||(tg[t]={n:0,v:0,names:[]});o.n++;o.v+=k;o.names.push(c.name+' '+k);tT+=k;tC++;
+  });
+  var tk=Object.keys(tg).sort(function(a,b){return tg[b].v-tg[a].v||a.localeCompare(b,'zh-TW-u-co-stroke')});
+  $('twtab').innerHTML=tk.length?'<table style="min-width:420px"><tr><th>鄉鎮市</th><th>個案數</th><th>服務人次</th><th>明細（姓名 次數）</th></tr>'+tk.map(function(t){var o=tg[t];return '<tr><td>'+esc(t)+'</td><td>'+o.n+'</td><td><b>'+o.v+'</b></td><td style="font-size:12px;color:var(--mut)">'+esc(o.names.join('、'))+'</td></tr>'}).join('')+'<tr><td><b>總計</b></td><td><b>'+tC+'</b></td><td><b>'+tT+'</b></td><td></td></tr></table>':'<div class="addr">這個期間沒有服務紀錄</div>';
   var nk='';
   sortedCases().forEach(function(c){
     var u=sorted(c).filter(function(v){return!v.keyed});if(!u.length)return;
@@ -583,6 +592,8 @@ $('bkOk').onclick=function(){if(bkPend){applyImport(bkPend);bkPend=null}$('bkOk'
 $('bkShow').onclick=function(){$('bkTxt').value=backupText();bkMsg('備份文字已產生，可按「複製」。')};
 $('bkCopy').onclick=function(){if(!$('bkTxt').value)$('bkTxt').value=backupText();$('bkTxt').select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}bkMsg(ok?'已複製，請貼到記事本或筆記 App 保存。':'請在文字框內全選後自行複製。')};
 $('bkImp').onclick=function(){askImport($('bkTxt').value.trim())};
+var nowM2=today().slice(0,7);$('tms').value=nowM2;$('tme').value=nowM2;
+$('tms').onchange=render;$('tme').onchange=render;
 load();render();
 })();
 </script>
