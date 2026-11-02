@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>個案服務紀錄</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#2f7d6d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="個案紀錄">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+:root{--bg:#f6f7f5;--card:#fff;--tx:#1f2a28;--mut:#6b7774;--line:#dfe4e1;--pri:#2f7d6d;--priTx:#fff;--warn:#b45309;--warnBg:#fef3c7;--ok:#166534;--okBg:#dcfce7;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161b1a;--card:#1f2625;--tx:#e6ecea;--mut:#93a09c;--line:#334240;--pri:#4fb09c;--priTx:#08201b;--warn:#fbbf24;--warnBg:#3a2c0b;--ok:#86efac;--okBg:#0f2f1b}}
+:root[data-theme="dark"]{--bg:#161b1a;--card:#1f2625;--tx:#e6ecea;--mut:#93a09c;--line:#334240;--pri:#4fb09c;--priTx:#08201b;--warn:#fbbf24;--warnBg:#3a2c0b;--ok:#86efac;--okBg:#0f2f1b}
+html{color-scheme:light dark;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+button{padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+button.p{background:var(--pri);color:var(--priTx);border-color:var(--pri)}
+button.s{padding:4px 9px;font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stat{flex:1;min-width:110px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--mut)}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+summary{cursor:pointer;padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;list-style:none}
+summary::-webkit-details-marker{display:none}
+.nm{font-weight:600;font-size:16px}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--mut)}
+.tag.w{background:var(--warnBg);color:var(--warn);border-color:transparent}
+.tag.o{background:var(--okBg);color:var(--ok);border-color:transparent}
+.body{padding:0 14px 14px}
+.addr{color:var(--mut);font-size:13px;margin-bottom:8px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--mut);font-weight:500}
+.empty{color:var(--mut);text-align:center;padding:24px}
+.note{font-size:12px;color:var(--mut);margin-top:14px}
+details.paused{opacity:.7;border-style:dashed}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.tabs{display:flex;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:8px 0;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;padding:10px 6px;font-weight:600}
+.tabs button.on{background:var(--pri);color:var(--priTx);border-color:var(--pri)}
+body[data-tab="case"] .t-stat,body[data-tab="case"] .t-route,body[data-tab="stat"] .t-case,body[data-tab="stat"] .t-route,body[data-tab="route"] .t-case,body[data-tab="route"] .t-stat{display:none}
+summary{position:relative;padding-right:34px}
+summary::after{content:"▾";position:absolute;right:14px;top:12px;color:var(--mut)}
+details[open]>summary::after{content:"▴"}
+#addBox>summary{background:var(--pri);color:var(--priTx);border-radius:12px}
+#addBox>summary::after{color:var(--priTx)}
+#addBox[open]>summary{border-radius:12px 12px 0 0}
+body:not([data-tab="week"]) .t-week{display:none}
+body[data-tab="week"] .t-case,body[data-tab="week"] .t-stat,body[data-tab="week"] .t-route{display:none}
+.tabs button[data-tab="week"]{flex:1.3}
+.tabs button[data-tab="week"]:not(.on){border-color:var(--pri);color:var(--pri)}
+@media (max-width:600px){input,select,textarea{font-size:16px}.wrap{padding:12px}button.s{padding:8px 12px;font-size:13px}}
+details[data-id]>summary .nm{flex-basis:100%;font-size:17px}
+input[type=checkbox]{accent-color:var(--pri);transform:scale(1.25);margin:0 4px}
+.gh{font-size:12px;color:var(--mut);margin:12px 0 2px}
+.goal{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.goal span{flex:1}
+.goal.done span{text-decoration:line-through;color:var(--mut)}
+.goal.done input{text-decoration:line-through;color:var(--mut)}
+.goal select{width:auto;padding:4px 6px;font-size:12px}
+a.btn{display:inline-block;padding:7px 12px;border-radius:8px;font-size:13px;text-decoration:none;background:var(--pri);color:var(--priTx)}
+a.btn:not([href]){opacity:.4;pointer-events:none}
+textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;resize:vertical}
+</style>
+</head>
+<body data-tab="case">
+<div class="wrap">
+<h1>個案服務紀錄</h1>
+<div class="sub">資料只存在這台裝置的瀏覽器裡，不會上傳。建議定期按「匯出備份」。</div>
+<div class="tabs" id="tabs"><button data-tab="case" class="on">👥 個案</button><button data-tab="week">📅 本週</button><button data-tab="stat">📋 申報與統計</button><button data-tab="route">🛵 車程</button></div>
+
+<div class="stats" id="stats"></div>
+<div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="stats" id="wsum"></div><div id="wbody"></div></div>
+<details id="nokeyBox" class="t-stat" open><summary><span class="nm">⏳ 尚未 Key 申報清單</span><span class="tag">勾選即視為已 Key</span></summary><div class="body"><div id="nkl"></div></div></details>
+<details id="monthBox" class="t-stat" open><summary><span class="nm">📅 每月服務次數</span></summary><div class="body"><div class="tw" id="mtab"></div><div class="note" id="mnote"></div><div class="gh">預估後續各月可申報次數</div><div class="tw" id="etab"></div><div class="row" style="margin-top:8px"><div style="width:200px"><label>沒有間隔資料時，預設服務間隔（天）</label><input id="eiv" type="number" min="1" value="7"></div></div><div class="note" id="enote"></div>
+<div class="gh">各服務代碼每組次數（滿一組才可申報；數字可自行修改）</div><div id="csz" class="row"></div></div></details>
+
+<details id="addBox" class="t-case"><summary><span class="nm">＋ 新增個案</span></summary><div class="body"><div class="grid">
+    <div><label>姓名</label><input id="nm" placeholder="例：王小明"></div>
+    <div><label>住址</label><input id="ad" placeholder="縣市區路段"></div>
+    <div><label>預計服務次數</label><input id="pl" type="number" min="1" value="9"></div>
+    <div><label>服務代碼</label><select id="rm"></select><div id="rnew" style="display:none;gap:6px;margin-top:6px"><input id="rnv" placeholder="例：BA07"><button class="s" id="rna" type="button">加入</button></div></div>
+    <div><label>服務目標（可之後再加）</label><input id="gl" placeholder="例：助行器從客廳走到臥室"></div>
+  </div>
+  <div class="row" style="margin-top:10px"><button class="p" id="addCase">＋ 新增個案</button></div>
+</div></details>
+
+<details id="planBox" class="t-route" open><summary><span class="nm">🧭 路線規劃（排出最順的順序）</span></summary><div class="body">
+<div class="grid"><div><label>出發地</label><input id="pst" placeholder="例：屏東市○○路○號"></div><div><label>路線方式</label><select id="pre"><option value="0">單程（不回出發地）</option><option value="1">來回（最後回出發地）</option></select></div></div>
+<div class="gh">勾選要訪視的個案（最多 8 位）</div><div id="ppick"></div>
+<div class="row" style="margin-top:10px"><button class="p" id="pgo">🧭 排出最順路線</button></div>
+<div id="pres"></div></div></details>
+<details id="routeBox" class="t-route" open><summary><span class="nm">🛵 個案間車程（機車）</span></summary><div class="body">
+<div class="grid"><div><label>起點</label><select id="ra"></select></div><div><label>終點</label><select id="rb"></select></div></div>
+<div class="row" style="margin-top:10px"><a id="rgo" class="btn" target="_blank" rel="noopener">在 Google 地圖查機車路線 ↗</a></div>
+<div class="grid" style="margin-top:10px"><div><label>距離（公里）</label><input id="rk" type="number" min="0" step="0.1"></div><div><label>機車車程（分鐘）</label><input id="rmin" type="number" min="0"></div></div>
+<div class="row" style="margin-top:10px"><button class="p s" id="rsave">儲存這一段</button></div>
+<div class="note" id="rinfo"></div>
+<div class="gh">已儲存的車程</div><div class="tw" id="rtab"></div>
+</div></details>
+
+<div class="row t-case" style="margin-bottom:10px">
+  <div style="flex:1;min-width:160px"><label>搜尋</label><input id="q" placeholder="姓名、住址或備註"></div>
+  <div><label>篩選</label><select id="f"><option value="all">全部</option><option value="nokey">有未申報的服務</option><option value="open">尚未服務完</option><option value="active">服務中</option><option value="paused">暫停中</option><option value="unclosed" selected>未結案</option><option value="closed">已結案</option></select></div>
+  <details style="flex-basis:100%;margin:0"><summary><span class="nm" style="font-size:14px">⚙ 分組與統計期間</span></summary><div class="row body" style="padding-top:0"><div><label>分組方式</label><select id="gb"><option value="sn">依姓氏</option><option value="tw">依鄉鎮市</option><option value="none">不分組</option></select></div>
+  <div><label>服務次數：起始月</label><input type="month" id="ms" placeholder="2026-11"></div>
+  <div><label>結束月</label><input type="month" id="me" placeholder="2026-11"></div></div></details>
+</div>
+
+<div class="note t-case" id="rsum" style="margin:-2px 0 10px"></div>
+<div id="list" class="t-case"></div>
+
+<div class="row" style="margin-top:14px">
+  <button id="exp">匯出備份</button>
+  <button id="imp">匯入備份</button>
+  <input type="file" id="file" accept="application/json,.json,text/plain" style="display:none">
+</div>
+<div class="row" style="margin-top:8px;align-items:center"><div class="note" id="bkMsg" style="margin:0"></div><button class="s p" id="bkOk" style="display:none">確定取代</button></div>
+<details id="bkBox" style="margin-top:8px"><summary><span class="nm" style="font-size:14px">📋 複製貼上備份（下載或匯入檔案失敗時使用）</span></summary><div class="body"><div class="row"><button class="s" id="bkShow">產生備份文字</button><button class="s" id="bkCopy">複製</button><button class="s p" id="bkImp">匯入貼上的文字</button></div><textarea id="bkTxt" rows="5" style="margin-top:8px" placeholder="備份文字會出現在這裡。要匯入時，把備份文字貼在這裡，再按「匯入貼上的文字」"></textarea></div></details>
+<div class="note">間隔天數 = 與上一次服務日期相差的天數；「距今」= 從最近一次服務到今天。</div>
+</div>
+
+<script>
+(function(){
+var KEY="ltc_cases_v1",cases=[];
+var WD=["日","一","二","三","四","五","六"];
+function load(){try{var s=localStorage.getItem(KEY);cases=s?JSON.parse(s):[]}catch(e){cases=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(cases))}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function pd(s){var a=s.split("-");return new Date(+a[0],+a[1]-1,+a[2])}
+function diff(a,b){return Math.round((pd(b)-pd(a))/864e5)}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function sorted(c){return c.visits.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0})}
+var openIds={};
+
+function render(){
+  var q=document.getElementById("q").value.trim(),f=document.getElementById("f").value;
+  var totV=0,totNo=0;
+  cases.forEach(function(c){totV+=c.visits.length;totNo+=c.visits.filter(function(v){return!v.keyed}).length});
+  document.getElementById("stats").innerHTML=
+   '<div class="stat"><b>'+cases.filter(function(x){return!x.closed}).length+'</b><span>未結案</span></div>'+
+   '<div class="stat"><b>'+cases.filter(function(x){return x.closed}).length+'</b><span>已結案</span></div>'+
+   '<div class="stat"><b>'+totV+'</b><span>已服務總次數</span></div>'+
+   '<div class="stat" data-nokey="1" style="cursor:pointer"><b>'+totNo+'</b><span>尚未 Key 申報 ▾</span></div>'+
+   '<div class="stat"><b>'+cases.filter(function(x){return x.paused&&!x.closed}).length+'</b><span>暫停中</span></div>';
+  var mm={};
+  cases.forEach(function(c){c.visits.forEach(function(v){var m=v.date.slice(0,7),o=mm[m]||(mm[m]={n:0,k:0,cs:{},g:0});o.n++;if(v.keyed)o.k++;o.cs[c.id]=1})});
+  var pend=0;
+  cases.forEach(function(c){var S=csize(c),vs=sorted(c),full=Math.floor(vs.length/S);pend+=vs.length-full*S;for(var i=1;i<=full;i++){var m=vs[i*S-1].date.slice(0,7);mm[m].g+=S}});
+  $('mnote').textContent='可申報次數＝當月「完成整組」的次數合計（以該組最後一次服務的月份計，不論前幾次是否跨月）。目前未滿組、尚不可申報的服務共 '+pend+' 次。';
+  fillSizes();
+  var est={},ivDef=parseInt($('eiv').value,10)||7,tdy=today();
+  cases.forEach(function(c){
+    if(c.closed||c.paused)return;
+    var S=csize(c),vs=sorted(c),n=vs.length,rem=(c.planned||0)-n;
+    if(rem<=0)return;
+    var ds=vs.map(function(v){return v.date}),iv=ivDef;
+    if(n>=2){var t=0,k=Math.min(3,n-1);for(var j=n-k;j<n;j++)t+=diff(vs[j-1].date,vs[j].date);iv=Math.max(1,Math.round(t/k))}
+    var td=pd(tdy),cur=n?pd(vs[n-1].date):td;
+    if(n)cur=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+iv);
+    if(cur<td)cur=td;
+    for(var i=0;i<rem;i++){ds.push(ymd(cur));cur=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+iv)}
+    for(var g=Math.floor(n/S)+1;g<=Math.floor(ds.length/S);g++){var m=ds[g*S-1].slice(0,7),o=est[m]||(est[m]={g:0,cs:{}});o.g+=S;o.cs[c.id]=1}
+  });
+  var em=Object.keys(est).sort(),eh='',et=0;
+  em.forEach(function(m){var o=est[m];et+=o.g;eh+='<tr><td>'+m.replace('-','年')+'月</td><td><b>'+o.g+'</b></td><td>'+Object.keys(o.cs).length+'</td></tr>'});
+  $('etab').innerHTML=em.length?'<table style="min-width:300px"><tr><th>月份</th><th>預估可申報次數</th><th>涉及個案數</th></tr>'+eh+'<tr><td><b>合計</b></td><td><b>'+et+'</b></td><td></td></tr></table>':'<div class="addr">目前沒有可推算的個案（需為未結案、未暫停，且尚未達預計次數）</div>';
+  var cm=tdy.slice(0,7),ca=(mm[cm]&&mm[cm].g)||0,cb=est[cm]?est[cm].g:0;
+  $('enote').textContent='本月（'+cm.replace('-','年')+'月）：目前已可申報 '+ca+' 次，預估還可再增加 '+cb+' 次，合計約 '+(ca+cb)+' 次。推算方式：每位個案依最近幾次的平均服務間隔，從今天起推算到預計次數為止；暫停、已結案、已達預計次數的個案不列入。這是估算，實際以服務紀錄為準。';
+  var ms=Object.keys(mm).sort().reverse(),mh='';
+  ms.forEach(function(m){var o=mm[m];mh+='<tr><td>'+m.replace('-','年')+'月</td><td>'+o.n+'</td><td>'+o.k+'</td><td>'+(o.n-o.k)+'</td><td>'+Object.keys(o.cs).length+'</td><td><b>'+o.g+'</b></td></tr>'});
+  $('mtab').innerHTML=ms.length?'<table style="min-width:360px"><tr><th>月份</th><th>服務次數</th><th>已申報</th><th>未申報</th><th>服務個案數</th><th>可申報次數</th></tr>'+mh+'<tr><td><b>合計</b></td><td><b>'+totV+'</b></td><td><b>'+(totV-totNo)+'</b></td><td><b>'+totNo+'</b></td><td></td><td><b>'+(totV-pend)+'</b></td></tr></table>':'<div class="addr">還沒有服務紀錄</div>';
+  var rs=$('ms').value,re=$('me').value;
+  var inR=function(v){var m=v.date.slice(0,7);return(!rs||m>=rs)&&(!re||m<=re)};
+  var lab=function(m){return m.replace('-','年')+'月'};
+  var rl=!rs&&!re?'全部期間':(rs&&re&&rs===re?lab(rs):((rs?lab(rs):'最早')+'～'+(re?lab(re):'最新')));
+  var rt=0,rcn=0;
+  cases.forEach(function(c){var k=c.visits.filter(inR).length;rt+=k;if(k)rcn++});
+  $('rsum').textContent=rl+'：共服務 '+rt+' 次，涉及 '+rcn+' 位個案（每位個案的次數見卡片標籤）';
+  $('tabs').querySelector('[data-tab="stat"]').textContent='📋 申報與統計'+(totNo?' ('+totNo+')':'');
+  var nk='';
+  sortedCases().forEach(function(c){
+    var u=sorted(c).filter(function(v){return!v.keyed});if(!u.length)return;
+    nk+='<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div class="row" style="align-items:center"><b>'+esc(c.name)+'</b>'+(c.closed?'<span class="tag">已結案</span>':'')+'<span class="tag w">'+u.length+' 筆未申報</span><button class="s" data-act="nka" data-id="'+c.id+'">全部已 Key</button></div><div style="margin-top:4px">'+u.map(function(v){var d=pd(v.date);return '<label style="display:inline-flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 10px;margin:2px 4px 2px 0;font-size:13px;color:var(--tx);cursor:pointer"><input type="checkbox" style="width:auto" data-act="nk" data-id="'+c.id+'" data-v="'+v.id+'">'+(d.getMonth()+1)+'/'+d.getDate()+'（週'+WD[d.getDay()]+'）</label>'}).join('')+'</div></div>';
+  });
+  $('nkl').innerHTML=nk||'<div class="addr">🎉 全部都已 Key 申報</div>';
+  var h="",n=0,curS=null,cnt={};
+  sortedCases().forEach(function(c){
+    var vs=sorted(c),nok=vs.filter(function(v){return!v.keyed}).length;
+    var gs=c.goals||[],gd=gs.filter(function(g){return g.status==="已達成"}).length;
+    var rc=vs.filter(inR).length,pm={};
+    var na=(c.appts||[]).filter(function(x){return x.date>=tdy&&(!x.status||x.status==='pending')}).sort(function(x,y){return x.date<y.date?-1:1})[0];
+    vs.forEach(function(v){var m=v.date.slice(0,7);pm[m]=(pm[m]||0)+1});
+    var pmh=Object.keys(pm).sort().map(function(m){return lab(m)+' '+pm[m]+' 次'}).join('、');
+    if(q&&(c.name+c.addr+(c.note||'')).indexOf(q)<0)return;
+    if(f==="nokey"&&!nok)return;
+    if(f==="open"&&(c.paused||c.closed||vs.length>=c.planned))return;
+    if(f==="active"&&(c.paused||c.closed))return;
+    if(f==="paused"&&(!c.paused||c.closed))return;
+    if(f==="unclosed"&&c.closed)return;
+    if(f==="closed"&&!c.closed)return;
+    n++;
+    var s=gk(c),gm=$('gb').value;cnt[s]=(cnt[s]||0)+1;
+    if(gm!=='none'&&s!==curS){curS=s;h+='<div class="gh" style="font-size:14px;margin:16px 2px 6px"><b style="color:var(--tx)">'+esc(s)+'</b> '+(gm==='sn'?'姓':'')+'（<!--c:'+esc(s)+'-->位）</div>'}
+    var last=vs.length?vs[vs.length-1].date:null;
+    var since=last?diff(last,today()):null;
+    h+='<details class="'+(c.paused||c.closed?'paused':'')+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary><span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+
+      '<span class="tag">'+vs.length+' / '+c.planned+' 次</span>'+'<span class="tag '+(rc?'o':'')+'">📅 '+rl+' '+rc+' 次</span>'+(c.skips&&c.skips.indexOf(ymd(wstart(0)))>=0?'<span class="tag w">⏸ 本週暫停</span>':'')+(na?'<span class="tag w">📌 預約 '+na.date.slice(5).replace('-','/')+'</span>':'')+
+      (csize(c)>1?'<span class="tag">'+Math.floor(vs.length/csize(c))+' 組完成'+(vs.length%csize(c)?'・本組 '+vs.length%csize(c)+'/'+csize(c):'')+'</span>':'')+
+      (gs.length?'<span class="tag">目標 '+gd+'/'+gs.length+'</span>':'<span class="tag w">未設定目標</span>')+
+      (nok?'<span class="tag w">'+nok+' 筆未申報</span>':(vs.length?'<span class="tag o">申報已完成</span>':''))+
+      (since!=null&&!c.paused?'<span class="tag">距今 '+since+' 天</span>':'')+
+      (c.remark?'<span class="tag">'+esc(c.remark)+'</span>':'')+(c.note?'<span class="tag">📝 有備註</span>':'')+'</summary><div class="body">'+
+      (aedit[c.id]?'<div style="margin-bottom:8px"><label>住址</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="ai_'+c.id+'" value="'+esc(c.addr||'')+'" placeholder="縣市區路段"></div><button class="p s" data-act="as" data-id="'+c.id+'">儲存</button><button class="s" data-act="ax" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📍 '+esc(c.addr||'（未填住址）')+'・'+esc(tw(c.addr))+' <button class="s" data-act="ae" data-id="'+c.id+'">✎ 編輯</button></div>')+
+      (c.closed?'<div class="addr">結案日期：'+esc(c.closeDate||"")+(c.closeReason?'｜原因：'+esc(c.closeReason):'')+'</div>':'')+
+      (c.paused?'<div class="addr" style="color:var(--warn)">暫停日期：'+esc(c.pauseDate||"")+(c.pauseReason?'｜原因：'+esc(c.pauseReason):'')+'</div>':'')+
+      (c.closed?'':'<div class="row" style="margin:4px 0 10px;align-items:end"><div><label>登記服務日期</label><input type="date" id="q_'+c.id+'" value="'+today()+'"></div><button class="p" data-act="avq" data-id="'+c.id+'">＋ 登記服務</button></div>')+
+      '<div class="addr">各月服務：'+(pmh||'尚無紀錄')+'</div>'+
+      '<div class="gh">個案備註</div><textarea data-act="cn" data-id="'+c.id+'" rows="2" placeholder="例：家屬聯絡方式、訪視注意事項…">'+esc(c.note||'')+'</textarea>'+
+      '<div class="gh">服務目標（可直接修改文字）</div>'+
+      gs.map(function(g){return '<div class="goal'+(g.status==="已達成"?' done':'')+'"><input data-act="gt" data-id="'+c.id+'" data-g="'+g.id+'" value="'+esc(g.text)+'" style="flex:1;min-width:0"><select data-act="gs" data-id="'+c.id+'" data-g="'+g.id+'">'+["進行中","已達成","需調整"].map(function(s){return '<option'+(s===g.status?' selected':'')+'>'+s+'</option>'}).join("")+'</select><button class="s" data-act="dg" data-id="'+c.id+'" data-g="'+g.id+'">刪</button></div>'}).join("")+
+      '<details style="margin:6px 0 4px;border:none;background:transparent"><summary style="padding:4px 0;color:var(--mut);font-size:13px">＋ 新增其他目標</summary><div class="row" style="margin-top:6px"><div style="flex:1;min-width:160px"><input id="g_'+c.id+'" placeholder="新增目標"></div><button class="p s" data-act="ag" data-id="'+c.id+'">＋ 新增目標</button></div></details>'+
+      '<div class="gh">服務紀錄</div>'+
+      '<div class="tw"><table><tr><th>#</th><th>日期</th><th>月/日</th><th>星期</th><th>間隔</th><th>已 Key 申報</th><th>備註</th><th></th></tr>';
+    vs.forEach(function(v,i){
+      var d=pd(v.date),gap=i?diff(vs[i-1].date,v.date)+" 天":"—";
+      h+='<tr><td>'+(i+1)+'</td><td><input type="date" data-act="vd" data-id="'+c.id+'" data-v="'+v.id+'" value="'+v.date+'"></td><td>'+(d.getMonth()+1)+'/'+d.getDate()+'</td><td>週'+WD[d.getDay()]+'</td><td>'+gap+'</td>'+
+        '<td><input type="checkbox" style="width:auto" data-act="key" data-id="'+c.id+'" data-v="'+v.id+'"'+(v.keyed?' checked':'')+'></td>'+
+        '<td><input data-act="vn" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.note||'')+'" placeholder="備註" style="min-width:120px"></td>'+
+        '<td><button class="s" data-act="dv" data-id="'+c.id+'" data-v="'+v.id+'">刪</button></td></tr>';
+    });
+    if(!vs.length)h+='<tr><td colspan="8" class="empty">還沒有服務紀錄</td></tr>';
+    h+='</table></div><div class="row" style="margin-top:10px"><div><label>新增服務日期</label><input type="date" id="d_'+c.id+'" value="'+today()+'"></div>'+
+      '<button class="p s" data-act="av" data-id="'+c.id+'">＋ 加入</button>'+
+      (c.closed?'':'<button class="s" data-act="tp" data-id="'+c.id+'">'+(c.paused?'恢復服務':'暫停個案')+'</button>')+
+      '<button class="s" data-act="cl" data-id="'+c.id+'">'+(c.closed?'重新開案':'結案')+'</button>'+
+      '<button class="s" data-act="dc" data-id="'+c.id+'">刪除此個案</button></div></div></details>';
+  });
+  Object.keys(cnt).forEach(function(k){h=h.replace('<!--c:'+esc(k)+'-->',cnt[k])});
+  document.getElementById("list").innerHTML=h||'<div class="card empty">'+(cases.length?"沒有符合的個案":"先在上方新增第一位個案")+'</div>';
+  fillRoute();fillPick();renderWeek();
+}
+
+document.getElementById("addCase").onclick=function(){
+  var nm=document.getElementById("nm").value.trim();
+  if(!nm){document.getElementById("nm").focus();return}
+  cases.unshift({id:uid(),name:nm,addr:document.getElementById("ad").value.trim(),planned:Math.max(1,+document.getElementById("pl").value||1),remark:document.getElementById("rm").value.trim(),goals:document.getElementById("gl").value.trim()?[{id:uid(),text:document.getElementById("gl").value.trim(),status:"進行中"}]:[],visits:[]});
+  ["nm","ad","gl"].forEach(function(i){document.getElementById(i).value=""});document.getElementById("addBox").open=false;
+  save();render();
+};
+document.getElementById("list").addEventListener("click",function(e){
+  var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt")return;
+  var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
+  if(act==="av"){var v=document.getElementById("d_"+c.id).value;if(!v)return;c.visits.push({id:uid(),date:v,keyed:false});openIds[c.id]=1}
+  if(act==="dv"){c.visits=c.visits.filter(function(x){return x.id!==t.getAttribute("data-v")});openIds[c.id]=1}
+  if(act==="ae"){aedit[c.id]=1;openIds[c.id]=1}
+  if(act==="ax"){delete aedit[c.id];openIds[c.id]=1}
+  if(act==="as"){var ai=document.getElementById("ai_"+c.id);if(ai)c.addr=ai.value.trim();delete aedit[c.id];openIds[c.id]=1}
+  if(act==="avq"){var qv=document.getElementById("q_"+c.id).value;if(!qv)return;c.visits.push({id:uid(),date:qv,keyed:false});openIds[c.id]=1}
+  if(act==="ag"){var gt=document.getElementById("g_"+c.id).value.trim();if(!gt)return;(c.goals=c.goals||[]).push({id:uid(),text:gt,status:"進行中"});openIds[c.id]=1}
+  if(act==="dg"){c.goals=(c.goals||[]).filter(function(g){return g.id!==t.getAttribute("data-g")});openIds[c.id]=1}
+  if(act==="cl"){
+    if(c.closed){c.closed=false;delete c.closeDate;delete c.closeReason}
+    else{var cr=prompt('結案原因（可留空）：');if(cr===null)return;c.closed=true;c.closeDate=today();c.closeReason=cr.trim();c.paused=false;delete c.pauseDate;delete c.pauseReason}
+    openIds[c.id]=1}
+  if(act==="tp"){
+    if(c.paused){c.paused=false;delete c.pauseDate;delete c.pauseReason}
+    else{var rs=prompt("暫停原因（可留空）：");if(rs===null)return;c.paused=true;c.pauseDate=today();c.pauseReason=rs.trim()}
+    openIds[c.id]=1}
+  if(act==="dc"){if(!confirm("確定刪除「"+c.name+"」與其所有紀錄？"))return;cases=cases.filter(function(x){return x!==c})}
+  save();render();
+});
+document.getElementById("list").addEventListener("change",function(e){
+  var t=e.target,ac=t.getAttribute("data-act");if(ac!=="key"&&ac!=="gs"&&ac!=="vd"&&ac!=="ca"&&ac!=="gt")return;
+  var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
+  if(ac==="gs"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.status=t.value})}
+  else if(ac==="gt"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.text=t.value.trim()||g.text})}
+  else if(ac==="ca"){c.addr=t.value.trim()}
+  else if(ac==="vd"){if(!t.value){render();return}c.visits.forEach(function(v){if(v.id===t.getAttribute("data-v"))v.date=t.value})}
+  else c.visits.forEach(function(v){if(v.id===t.getAttribute("data-v"))v.keyed=t.checked});
+  openIds[c.id]=1;save();render();
+});
+document.getElementById("list").addEventListener("toggle",function(e){
+  var d=e.target;if(d.tagName==="DETAILS")openIds[d.getAttribute("data-id")]=d.open?1:0;
+},true);
+document.getElementById("q").oninput=render;
+document.getElementById("f").onchange=render;
+document.getElementById("exp").onclick=function(){
+  var b=new Blob([JSON.stringify({cases:cases,routes:routes,codes:codes,sizes:sizes,eiv:$('eiv').value},null,1)],{type:"application/json"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="cases-"+today()+".json";a.click();
+};
+document.getElementById("imp").onclick=function(){document.getElementById("file").click()};
+document.getElementById("file").onchange=function(e){
+  var f=e.target.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){try{var d=JSON.parse(r.result),cl=Array.isArray(d)?d:d.cases;if(Array.isArray(cl)&&confirm("匯入會取代目前資料，確定？")){cases=cl;if(!Array.isArray(d)){if(d.routes)routes=d.routes;if(d.codes&&d.codes.length){codes=d.codes;csave();fillCodes(lastCode)}if(d.sizes){for(var z in d.sizes)sizes[z]=d.sizes[z];ssave()}if(d.eiv){$('eiv').value=d.eiv;try{localStorage.setItem('ltc_eiv',d.eiv)}catch(e){}}}save();rsave();render()}}catch(x){alert("檔案格式不正確")}};
+  r.readAsText(f);e.target.value="";
+};
+var RKEY='ltc_routes_v1',routes={};
+try{routes=JSON.parse(localStorage.getItem(RKEY)||'{}')||{}}catch(e){routes={}}
+function rsave(){try{localStorage.setItem(RKEY,JSON.stringify(routes))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function cs(id){return cases.filter(function(x){return x.id===id})[0]}
+function pk(a,b){return a<b?a+'|'+b:b+'|'+a}
+function fillRoute(){
+  var A=$('ra'),B=$('rb');if(!A)return;
+  var va=A.value,vb=B.value;
+  var o=sortedCases().map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+(c.paused?'（暫停）':'')+'</option>'}).join('');
+  A.innerHTML=o;B.innerHTML=o;
+  if(cs(va))A.value=va;
+  if(cs(vb))B.value=vb;else if(cases.length>1)B.selectedIndex=1;
+  routeUpd();
+}
+function routeUpd(){
+  var a=cs($('ra').value),b=cs($('rb').value),go=$('rgo'),info=$('rinfo'),rows='';
+  Object.keys(routes).forEach(function(k){
+    var p=k.split('|'),x=cs(p[0]),y=cs(p[1]),r=routes[k];if(!x||!y)return;
+    rows+='<tr><td>'+esc(x.name)+' ↔ '+esc(y.name)+'</td><td>'+esc(r.km)+' km</td><td>約 '+esc(r.min)+' 分</td><td><button class="s" data-k="'+esc(k)+'">刪</button></td></tr>';
+  });
+  $('rtab').innerHTML=rows?'<table><tr><th>路段</th><th>距離</th><th>機車車程</th><th></th></tr>'+rows+'</table>':'<div class="addr">尚未儲存任何路段</div>';
+  if(!a||!b||a===b){go.removeAttribute('href');info.textContent=cases.length<2?'至少需要兩位個案。':'請選兩位不同的個案。';return}
+  if(!a.addr||!b.addr){go.removeAttribute('href');info.textContent='請先在個案資料補上雙方住址。';return}
+  go.href='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(a.addr)+'&destination='+encodeURIComponent(b.addr)+'&travelmode=two-wheeler';
+  var r=routes[pk(a.id,b.id)];
+  info.textContent=r?'已儲存：約 '+r.km+' 公里，機車約 '+r.min+' 分鐘（來回視為相同）':'尚未儲存這一段：請按上方連結查看路線，再把公里數和分鐘填入儲存。';
+}
+$('ra').onchange=routeUpd;$('rb').onchange=routeUpd;
+$('rtab').onclick=function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-k');if(k){delete routes[k];rsave();routeUpd()}};
+$('rsave').onclick=function(){
+  var a=$('ra').value,b=$('rb').value,km=parseFloat($('rk').value),mn=parseInt($('rmin').value,10);
+  if(!a||!b||a===b||!(km>=0)||!(mn>=0))return;
+  routes[pk(a,b)]={km:km,min:mn};rsave();$('rk').value='';$('rmin').value='';routeUpd();
+};
+var CKEY='ltc_codes_v1',codes=['CA07','CB04'];
+try{var cc=JSON.parse(localStorage.getItem(CKEY)||'null');if(Array.isArray(cc)&&cc.length)codes=cc}catch(e){}
+var lastCode=codes[0];
+function csave(){try{localStorage.setItem(CKEY,JSON.stringify(codes))}catch(e){}}
+function fillCodes(sel){
+  var S=$('rm');
+  S.innerHTML=codes.map(function(c){return '<option>'+esc(c)+'</option>'}).join('')+'<option value="__new">＋ 新增代碼…</option>';
+  S.value=codes.indexOf(sel)>=0?sel:codes[0];
+}
+$('rm').onchange=function(){
+  if(this.value!=='__new'){lastCode=this.value;return}
+  this.value=lastCode;
+  $('rnew').style.display='flex';$('rnv').focus();
+};
+$('rna').onclick=function(){
+  var v=$('rnv').value.trim().toUpperCase();
+  if(v){if(codes.indexOf(v)<0){codes.push(v);csave()}if(!sizes[v]){sizes[v]=1;ssave()}lastCode=v}
+  $('rnv').value='';$('rnew').style.display='none';fillCodes(lastCode);
+};
+fillCodes(lastCode);
+var SURN=['歐陽','司馬','諸葛','上官','東方','皇甫','尉遲','公孫','慕容','司徒','夏侯','張簡','范姜','端木','令狐','長孫','宇文','軒轅','百里','呂延','南宮','西門','獨孤','鐘離','太史','申屠','濮陽'];
+function sn(name){name=(name||'').trim();for(var i=0;i<SURN.length;i++)if(name.indexOf(SURN[i])===0)return SURN[i];return name.charAt(0)||'未填'}
+function tw(addr){addr=(addr||'').replace(/\s/g,'');var m=addr.match(/(?:[^縣市]{1,3}[縣市])?([^縣市鄉區]{1,3}[鄉鎮市區])/);return m?m[1]:'未分類'}
+function gk(c){var g=$('gb').value;return g==='tw'?tw(c.addr):g==='none'?'':sn(c.name)}
+function sortedCases(){return cases.slice().sort(function(a,b){var x=gk(a),y=gk(b);if(x!==y){if(x==='未分類')return 1;if(y==='未分類')return -1;return x.localeCompare(y,'zh-TW-u-co-stroke')}return(a.name||'').localeCompare(b.name||'','zh-TW-u-co-stroke')})}
+try{var gv=localStorage.getItem('ltc_gb');if(gv==='tw'||gv==='sn'||gv==='none')$('gb').value=gv}catch(e){}
+$('gb').onchange=function(){try{localStorage.setItem('ltc_gb',this.value)}catch(e){}render()};
+document.getElementById("list").addEventListener("input",function(e){
+  var t=e.target,ac=t.getAttribute&&t.getAttribute("data-act");if(ac!=="cn"&&ac!=="vn")return;
+  var c=cs(t.getAttribute("data-id"));if(!c)return;
+  if(ac==="cn")c.note=t.value;
+  else c.visits.forEach(function(v){if(v.id===t.getAttribute("data-v"))v.note=t.value});
+  save();
+});
+var SKEY='ltc_sizes_v1',sizes={CA07:3,CB04:6};
+try{var ss=JSON.parse(localStorage.getItem(SKEY)||'null');if(ss&&typeof ss==='object')for(var sk in ss)sizes[sk]=ss[sk]}catch(e){}
+function ssave(){try{localStorage.setItem(SKEY,JSON.stringify(sizes))}catch(e){}}
+function csize(c){var r=c.remark||'';if(sizes[r])return sizes[r];for(var k in sizes)if(r.indexOf(k)>=0)return sizes[k];return 1}
+function fillSizes(){
+  var ks=codes.slice();for(var k in sizes)if(ks.indexOf(k)<0)ks.push(k);
+  $('csz').innerHTML=ks.map(function(k){return '<div style="width:96px"><label>'+esc(k)+'</label><input type="number" min="1" data-code="'+esc(k)+'" value="'+(sizes[k]||1)+'"></div>'}).join('');
+}
+$('csz').onchange=function(e){var k=e.target.getAttribute('data-code');if(!k)return;sizes[k]=Math.max(1,parseInt(e.target.value,10)||1);ssave();render()};
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+try{var ev=localStorage.getItem('ltc_eiv');if(ev)$('eiv').value=ev}catch(e){}
+$('eiv').onchange=function(){try{localStorage.setItem('ltc_eiv',this.value)}catch(e){}render()};
+var nowM=today().slice(0,7);$('ms').value=nowM;$('me').value=nowM;
+$('ms').onchange=render;$('me').onchange=render;
+$('stats').onclick=function(e){var el=e.target.closest&&e.target.closest('[data-nokey]');if(el){setTab('stat');var b=$('nokeyBox');b.open=true;if(b.scrollIntoView)b.scrollIntoView({block:'start'})}};
+$('nkl').onchange=function(e){var t=e.target;if(t.getAttribute('data-act')!=='nk')return;var c=cs(t.getAttribute('data-id'));if(!c)return;c.visits.forEach(function(v){if(v.id===t.getAttribute('data-v'))v.keyed=t.checked});save();render()};
+$('nkl').onclick=function(e){var t=e.target;if(t.getAttribute&&t.getAttribute('data-act')==='nka'){var c=cs(t.getAttribute('data-id'));if(!c)return;c.visits.forEach(function(v){v.keyed=true});save();render()}};
+function setTab(t){document.body.setAttribute('data-tab',t);Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.className=b.getAttribute('data-tab')===t?'on':''});try{localStorage.setItem('ltc_tab',t)}catch(e){}}
+$('tabs').onclick=function(e){var t=e.target.getAttribute&&e.target.getAttribute('data-tab');if(t)setTab(t)};
+var st='case';try{st=localStorage.getItem('ltc_tab')||'case'}catch(e){}
+setTab(st);
+var aedit={},wOff=0,wpend={},wmiss={},MINGAP=7,REASONS=['個案請假','個案不在家','住院/就醫','家屬取消','其他'];
+function missTag(c){var s0=ymd(wstart(wOff)),s6=addD(s0,6);return (c.appts||[]).filter(function(x){return x.status==='missed'&&x.date>=s0&&x.date<=s6}).map(function(x){return ' <span class="tag w" style="flex:none">✖ '+fmtD(x.date)+' 未服務'+(x.reason?'：'+esc(x.reason):'')+'</span>'}).join('')}
+function addD(s,k){var d=pd(s);return ymd(new Date(d.getFullYear(),d.getMonth(),d.getDate()+k))}
+function chkGap(c,date,skipId,skipV){
+  var p=null,nx=null,all=[];
+  c.visits.forEach(function(v){if(v.id!==skipV)all.push({d:v.date,k:'服務'})});
+  (c.appts||[]).forEach(function(x){if(x.id!==skipId&&x.status!=='missed')all.push({d:x.date,k:'預約'})});
+  all.forEach(function(o){if(o.d<=date&&(!p||o.d>p.d))p=o;if(o.d>date&&(!nx||o.d<nx.d))nx=o});
+  if(p&&diff(p.d,date)<MINGAP)return '距上一次'+p.k+'（'+fmtD(p.d)+'）只有 '+diff(p.d,date)+' 天，最早可約 '+fmtD(addD(p.d,MINGAP));
+  if(nx&&diff(date,nx.d)<MINGAP)return '距下一次'+nx.k+'（'+fmtD(nx.d)+'）只有 '+diff(date,nx.d)+' 天';
+  return null;
+}
+function wstart(off){var d=pd(today()),dow=(d.getDay()+6)%7;return new Date(d.getFullYear(),d.getMonth(),d.getDate()-dow+off*7)}
+function fmtD(s){var d=pd(s);return (d.getMonth()+1)+'/'+d.getDate()}
+function renderWeek(){
+  var s=wstart(wOff),days=[],i,t=today();
+  for(i=0;i<7;i++)days.push(ymd(new Date(s.getFullYear(),s.getMonth(),s.getDate()+i)));
+  var a=days[0],b=days[6];
+  $('wlabel').textContent=(wOff===0?'本週　':wOff<0?(-wOff)+' 週前　':wOff+' 週後　')+fmtD(a)+' ～ '+fmtD(b);
+  var inW=function(d){return d>=a&&d<=b};
+  var act=sortedCases().filter(function(c){return!c.closed&&!c.paused});
+  var booked={},nb=0,rep=0,doneL=[],none=[],skipL=[];
+  act.forEach(function(c){
+    if((c.skips||[]).indexOf(a)>=0){skipL.push(c);return}
+    var ap=(c.appts||[]).filter(function(x){return inW(x.date)});
+    var vv=sorted(c).filter(function(v){return inW(v.date)});
+    ap.forEach(function(x){(booked[x.date]=booked[x.date]||[]).push({c:c,x:x,n:vv.length});if(x.date<t&&(!x.status||x.status==='pending'))rep++});
+    var live=ap.filter(function(x){return x.status!=='missed'});
+    if(live.length)nb++;
+    else if(vv.length)doneL.push({c:c,vv:vv});
+    else none.push(c);
+  });
+  var sinceOf=function(c){var vs=sorted(c);return vs.length?diff(vs[vs.length-1].date,t):9999};
+  none.sort(function(x,y){return sinceOf(y)-sinceOf(x)});
+  $('wsum').innerHTML='<div class="stat"><b>'+nb+'</b><span>本週有約</span></div><div class="stat"><b>'+doneL.length+'</b><span>已服務（無其他約）</span></div><div class="stat"><b>'+none.length+'</b><span>本週沒約</span></div><div class="stat"><b>'+skipL.length+'</b><span>本週暫停</span></div><div class="stat"><b>'+rep+'</b><span>待回報（日期已過）</span></div>';
+  var h='<div class="gh" style="font-size:14px">📌 本週有約</div>';
+  days.forEach(function(d){
+    var L=booked[d]||[],dd=pd(d);
+    h+='<div style="display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);'+(d===t?'background:var(--okBg);border-radius:8px;':'')+'"><div style="width:72px;flex:none"><b>週'+WD[dd.getDay()]+'</b><div class="addr" style="margin:0">'+fmtD(d)+(d===t?' 今天':'')+'</div></div><div style="flex:1">'+(L.length?L.map(function(o){return '<div class="row" style="align-items:center;margin-bottom:4px"><b>'+esc(o.c.name)+'</b>'+(function(){var m=chkGap(o.c,o.x.date,o.x.id,o.x.vid);return m?'<span class="tag w">⚠ '+esc(m)+'</span>':'<span class="tag o">✓ 間隔符合 '+MINGAP+' 天</span>'})()+''+''+(o.x.status==='done'?'<span class="tag o">✔ 已服務</span>'+(function(){var v0=o.c.visits.filter(function(v){return v.id===o.x.vid})[0];return v0&&v0.keyed?'<span class="tag" style="flex:none">已 Key 申報，無法直接改回</span>':'<button class="s" data-act="wundone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">↩ 改回未服務</button>'})():o.x.status==='missed'?'<span class="tag w">✖ 沒服務到'+(o.x.reason?'：'+esc(o.x.reason):'')+'</span><button class="s" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">改為已服務</button><button class="s" data-act="wunmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">恢復待服務</button>':'<span class="tag w">🕒 已預約・未服務</span>'+(o.x.date<t?'<span class="tag w">待回報</span>':'')+'<button class="s p" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✔ 改為已服務</button><button class="s" data-act="wmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✖ 沒服務到</button>')+'<button class="s" data-act="wcan" data-id="'+o.c.id+'" data-a="'+o.x.id+'">取消預約</button>'+(wmiss[o.x.id]?'<div style="flex-basis:100%;font-size:13px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" data-id="'+o.c.id+'" data-a="'+o.x.id+'" data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" data-id="'+o.c.id+'" data-a="'+o.x.id+'">返回</button></div>':'')+'</div>'}).join(''):'<span class="addr" style="margin:0">— 沒有預約</span>')+'</div></div>';
+  });
+  h+='<div class="gh" style="font-size:14px;margin-top:16px">✔ 本週已服務（沒有其他預約）'+doneL.length+' 位</div>'+(doneL.length?doneL.map(function(o){return '<div class="goal"><b>'+esc(o.c.name)+'</b>'+o.vv.map(function(v){return '<span class="tag o" style="flex:none">✔ '+fmtD(v.date)+' 已服務</span>'+(v.keyed?'<span class="tag" style="flex:none">已 Key</span>':'<button class="s" data-act="wrev" data-id="'+o.c.id+'" data-v="'+v.id+'">↩ 改回未服務</button>')}).join('')+'</div>'}).join(''):'<div class="addr">無</div>');
+  h+='<div class="gh" style="font-size:14px;margin-top:16px">⚠ 本週沒約 '+none.length+' 位（最久沒服務的排前面）</div>';
+  none.forEach(function(c){
+    var vs=sorted(c),last=vs.length?vs[vs.length-1].date:null,dflt=wpend[c.id]?wpend[c.id].date:((t>=a&&t<=b)?t:a);
+    h+='<div class="goal" style="flex-wrap:wrap"><span style="min-width:140px"><b>'+esc(c.name)+'</b> <span class="tag" style="flex:none">'+(last?'上次 '+fmtD(last)+'（'+diff(last,t)+' 天前）':'尚無服務紀錄')+'</span>'+missTag(c)+'</span><input type="date" id="wd_'+c.id+'" value="'+dflt+'" style="width:auto"><button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button><button class="s" data-act="wskip" data-id="'+c.id+'">⏸ 本週暫停一次</button>'+(wpend[c.id]?'<div style="flex-basis:100%;background:var(--warnBg);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:13px">⚠ '+esc(wpend[c.id].msg)+'　<button class="s" data-act="wforce" data-id="'+c.id+'">仍要預約</button> <button class="s" data-act="wback" data-id="'+c.id+'">取消</button></div>':'')+'</div>';
+  });
+  if(!none.length)h+='<div class="addr">🎉 每位有在服務的個案本週都有安排</div>';
+  if(skipL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">⏸ 本週暫停一次 '+skipL.length+' 位</div>'+skipL.map(function(c){return '<div class="goal"><b>'+esc(c.name)+'</b><span class="tag w" style="flex:none">本週不服務</span><button class="s" data-act="wunskip" data-id="'+c.id+'">恢復</button></div>'}).join('')}
+  $('tabs').querySelector('[data-tab="week"]').textContent='📅 本週'+(none.length&&wOff===0?' ⚠'+none.length:'');
+  $('wbody').innerHTML=h;
+}
+$('wprev').onclick=function(){wOff--;renderWeek()};
+$('wnext').onclick=function(){wOff++;renderWeek()};
+$('wnow').onclick=function(){wOff=0;renderWeek()};
+$('wbody').onclick=function(e){
+  var t=e.target,act=t.getAttribute&&t.getAttribute('data-act');if(!act)return;
+  var c=cs(t.getAttribute('data-id'));if(!c)return;
+  if(act==='wadd'){var v=$('wd_'+c.id).value;if(!v)return;var gm=chkGap(c,v);if(gm){wpend[c.id]={date:v,msg:gm};renderWeek();return}delete wpend[c.id];(c.appts=c.appts||[]).push({id:uid(),date:v})}
+  else if(act==='wforce'){var pp=wpend[c.id];if(!pp)return;delete wpend[c.id];(c.appts=c.appts||[]).push({id:uid(),date:pp.date})}
+  else if(act==='wundone'){var uu=t.getAttribute('data-a');(c.appts||[]).forEach(function(x){if(x.id===uu){var v0=c.visits.filter(function(v){return v.id===x.vid})[0];if(v0&&v0.keyed)return;c.visits=c.visits.filter(function(v){return v.id!==x.vid});delete x.status;delete x.vid}})}
+  else if(act==='wrev'){var rv=t.getAttribute('data-v'),v1=c.visits.filter(function(v){return v.id===rv})[0];if(!v1||v1.keyed)return;c.visits=c.visits.filter(function(v){return v.id!==rv});(c.appts=c.appts||[]).push({id:uid(),date:v1.date})}
+  else if(act==='wmiss'){wmiss[t.getAttribute('data-a')]=true;renderWeek();return}
+  else if(act==='wmback'){delete wmiss[t.getAttribute('data-a')];renderWeek();return}
+  else if(act==='wmr'){var mid=t.getAttribute('data-a');(c.appts||[]).forEach(function(x){if(x.id===mid){x.status='missed';x.reason=t.getAttribute('data-r')}});delete wmiss[mid]}
+  else if(act==='wunmiss'){var um=t.getAttribute('data-a');(c.appts||[]).forEach(function(x){if(x.id===um){delete x.status;delete x.reason}})}
+  else if(act==='wskip'){(c.skips=c.skips||[]).push(ymd(wstart(wOff)));delete wpend[c.id]}
+  else if(act==='wunskip'){var ws=ymd(wstart(wOff));c.skips=(c.skips||[]).filter(function(x){return x!==ws})}
+  else if(act==='wback'){delete wpend[c.id];renderWeek();return}
+  else{
+    var aid=t.getAttribute('data-a'),ap=(c.appts||[]).filter(function(x){return x.id===aid})[0];if(!ap)return;
+    if(act==='wdone'){var nv={id:uid(),date:ap.date,keyed:false};c.visits.push(nv);ap.status='done';ap.vid=nv.id;delete ap.reason}
+    else c.appts=c.appts.filter(function(x){return x.id!==aid});
+  }
+  save();render();
+};
+var pSel={};
+var TWC={'屏東市':[22.672,120.489],'潮州鎮':[22.551,120.540],'東港鎮':[22.467,120.454],'恆春鎮':[22.002,120.744],'萬丹鄉':[22.590,120.485],'長治鄉':[22.677,120.528],'麟洛鄉':[22.649,120.519],'九如鄉':[22.739,120.490],'里港鄉':[22.787,120.495],'鹽埔鄉':[22.746,120.573],'高樹鄉':[22.826,120.605],'萬巒鄉':[22.571,120.562],'內埔鄉':[22.612,120.567],'竹田鄉':[22.588,120.542],'新埤鄉':[22.469,120.546],'枋寮鄉':[22.365,120.594],'新園鄉':[22.544,120.457],'崁頂鄉':[22.513,120.513],'林邊鄉':[22.433,120.513],'南州鄉':[22.494,120.511],'佳冬鄉':[22.417,120.553],'琉球鄉':[22.343,120.370],'車城鄉':[22.072,120.711],'滿州鄉':[22.020,120.840],'枋山鄉':[22.261,120.659],'三地門鄉':[22.711,120.651],'霧台鄉':[22.738,120.729],'瑪家鄉':[22.677,120.646],'泰武鄉':[22.600,120.633],'來義鄉':[22.523,120.621],'春日鄉':[22.383,120.691],'獅子鄉':[22.215,120.738],'牡丹鄉':[22.125,120.803]};
+function tcen(a){var t=tw(a||'').replace('南洲','南州');return TWC[t]||null}
+function hav(a,b){var r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)*Math.sin(dg/2);return 12742*Math.asin(Math.sqrt(x))}
+function leg(A,B){
+  if(A.id&&B.id){var r=routes[pk(A.id,B.id)];if(r&&r.min>=0)return{m:+r.min,s:'s'}}
+  if(A.cen&&B.cen)return{m:Math.max(6,Math.round(hav(A.cen,B.cen)*1.3*2)),s:'e'};
+  return{m:25,s:'u'}
+}
+function plan(N,ret){
+  var n=N.length,L=[],i,j;
+  for(i=0;i<n;i++){L[i]=[];for(j=0;j<n;j++)L[i][j]=i===j?{m:0,s:'e'}:leg(N[i],N[j])}
+  var best=null,bestC=1e9,used=[],path=[0];
+  function dfs(c){
+    if(c>=bestC)return;
+    if(path.length===n){var tot=c+(ret?L[path[n-1]][0].m:0);if(tot<bestC){bestC=tot;best=path.slice()}return}
+    for(var k=1;k<n;k++)if(!used[k]){used[k]=1;path.push(k);dfs(c+L[path[path.length-2]][k].m);path.pop();used[k]=0}
+  }
+  dfs(0);
+  return{order:best,L:L,total:bestC}
+}
+function gUrl(o,N,ret){
+  var A=function(i){return encodeURIComponent(N[i].addr||N[i].name)};
+  var stops=o.slice(1),dest=ret?0:stops.pop();
+  var u='https://www.google.com/maps/dir/?api=1&origin='+A(0)+'&destination='+A(dest)+'&travelmode=two-wheeler';
+  if(stops.length)u+='&waypoints='+stops.map(A).join('%7C');
+  return u.replace(/&/g,'&amp;');
+}
+function fillPick(){
+  var ac=sortedCases().filter(function(c){return!c.closed&&!c.paused});
+  $('ppick').innerHTML=ac.length?ac.map(function(c){return '<label style="display:inline-flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:99px;padding:4px 10px;margin:3px 4px 3px 0;font-size:13px;color:var(--tx);cursor:pointer"><input type="checkbox" style="width:auto" data-p="'+c.id+'"'+(pSel[c.id]?' checked':'')+'>'+esc(c.name)+' <span class="addr" style="margin:0;font-size:11px">'+esc(tw(c.addr))+'</span></label>'}).join(''):'<div class="addr">沒有進行中的個案</div>';
+}
+function runPlan(){
+  var st=$('pst').value.trim(),res=$('pres');
+  try{localStorage.setItem('ltc_pstart',st)}catch(e){}
+  var ids=Object.keys(pSel).filter(function(k){return pSel[k]&&cs(k)});
+  if(!st||!ids.length){res.innerHTML='<div class="note">請先填出發地，並勾選至少 1 位個案。</div>';return}
+  var N=[{id:null,name:'出發地',addr:st,cen:tcen(st)}].concat(ids.map(function(id){var c=cs(id);return{id:id,name:c.name,addr:c.addr||'',cen:tcen(c.addr)}}));
+  var ret=$('pre').value==='1',R=plan(N,ret),o=R.order,ns=0,ne=0,nu=0,unsaved=[],seen={};
+  var h='<div class="stats" style="margin-top:10px"><div class="stat"><b>約 '+R.total+' 分鐘</b><span>'+(ret?'來回':'單程')+'・'+ids.length+' 位個案</span></div></div>';
+  var seq=o.slice();if(ret)seq.push(0);
+  seq.forEach(function(ix,k){
+    var n=N[ix],lt='';
+    if(k>0){
+      var l=R.L[seq[k-1]][ix],pn=N[seq[k-1]];
+      if(l.s==='s')ns++;else if(l.s==='e')ne++;else nu++;
+      lt='<span class="tag '+(l.s==='s'?'o':l.s==='u'?'w':'')+'" style="flex:none">'+(l.s==='s'?'已存 ':l.s==='e'?'估 ':'預設 ')+l.m+' 分</span>';
+      if(l.s!=='s'&&pn.id&&n.id&&!seen[pk(pn.id,n.id)]){seen[pk(pn.id,n.id)]=1;unsaved.push([pn,n])}
+    }
+    h+='<div class="goal"><span style="flex:none;width:24px">'+(k===0?'🏁':(ret&&k===seq.length-1?'↩':k))+'</span><span><b>'+esc(n.id?n.name:(k===0?'出發地':'回到出發地'))+'</b> <span class="addr" style="margin:0;font-size:12px">'+esc(n.addr||'（未填住址）')+'</span></span>'+lt+'</div>';
+  });
+  h+='<div class="note">共 '+ns+' 段用你存的真實車程、'+ne+' 段是估算'+(nu?'、'+nu+' 段找不到位置，用預設 25 分':'')+'。估算只看鄉鎮中心的直線距離，只適合排順序參考。</div>';
+  var miss=N.filter(function(n){return!n.cen}).map(function(n){return n.id?n.name:'出發地'});
+  if(miss.length)h+='<div class="tag w" style="display:block;margin-top:6px">⚠ 找不到鄉鎮位置：'+esc(miss.join('、'))+'（請確認住址有寫到鄉鎮市）</div>';
+  h+='<div class="row" style="margin-top:8px"><a class="btn" target="_blank" rel="noopener" href="'+gUrl(o,N,ret)+'">在 Google 地圖開啟整條路線（機車）↗</a></div>';
+  if(unsaved.length){
+    h+='<div class="gh">還沒存真實車程的路段（到 Google 地圖查完，填分鐘後按「存」，下次就會用真實數字）</div>';
+    unsaved.forEach(function(p){
+      var a=p[0],b=p[1],lk='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(a.addr||a.name)+'&destination='+encodeURIComponent(b.addr||b.name)+'&travelmode=two-wheeler';
+      h+='<div class="goal" style="flex-wrap:wrap"><span style="min-width:140px">'+esc(a.name)+' → '+esc(b.name)+'</span><a class="btn" target="_blank" rel="noopener" href="'+lk.replace(/&/g,'&amp;')+'">查路線 ↗</a><input id="pk_'+a.id+'_'+b.id+'" type="number" min="0" step="0.1" placeholder="公里" style="width:80px"><input id="pm_'+a.id+'_'+b.id+'" type="number" min="0" placeholder="分鐘" style="width:80px"><button class="s p" data-act="psv" data-a="'+a.id+'" data-b="'+b.id+'">存</button></div>';
+    });
+  }
+  res.innerHTML=h;
+}
+$('ppick').onchange=function(e){var id=e.target.getAttribute('data-p');if(!id)return;if(e.target.checked&&Object.keys(pSel).filter(function(k){return pSel[k]}).length>=8){e.target.checked=false;$('pres').innerHTML='<div class="note">一次最多 8 位。</div>';return}pSel[id]=e.target.checked};
+$('pgo').onclick=runPlan;
+$('pres').onclick=function(e){var t=e.target;if(!t.getAttribute||t.getAttribute('data-act')!=='psv')return;var a=t.getAttribute('data-a'),b=t.getAttribute('data-b'),km=parseFloat($('pk_'+a+'_'+b).value),mn=parseInt($('pm_'+a+'_'+b).value,10);if(!(mn>=0))return;routes[pk(a,b)]={km:km>=0?km:'—',min:mn};rsave();routeUpd();runPlan()};
+try{$('pst').value=localStorage.getItem('ltc_pstart')||''}catch(e){$('pst').value=''}
+function bkMsg(s){$('bkMsg').textContent=s}
+var bkPend=null;
+function backupText(){return JSON.stringify({cases:cases,routes:routes,codes:codes,sizes:sizes,eiv:$('eiv').value},null,1)}
+function applyImport(text){
+  try{
+    var d=JSON.parse(text),cl=Array.isArray(d)?d:d.cases;if(!Array.isArray(cl))throw 0;
+    cases=cl;
+    if(!Array.isArray(d)){
+      if(d.routes)routes=d.routes;
+      if(d.codes&&d.codes.length){codes=d.codes;csave();fillCodes(lastCode)}
+      if(d.sizes){for(var z in d.sizes)sizes[z]=d.sizes[z];ssave()}
+      if(d.eiv){$('eiv').value=d.eiv;try{localStorage.setItem('ltc_eiv',d.eiv)}catch(e){}}
+    }
+    save();rsave();render();bkMsg('已匯入 '+cl.length+' 位個案。');
+  }catch(x){bkMsg('備份內容格式不正確，沒有變更任何資料。')}
+}
+function askImport(text){
+  try{
+    var d=JSON.parse(text),cl=Array.isArray(d)?d:d.cases;if(!Array.isArray(cl))throw 0;
+    bkPend=text;$('bkOk').style.display='inline-block';
+    bkMsg('備份內有 '+cl.length+' 位個案。匯入會取代這台裝置上目前的所有資料，確定嗎？');
+  }catch(x){bkPend=null;$('bkOk').style.display='none';bkMsg('備份內容格式不正確，沒有變更任何資料。')}
+}
+$('exp').onclick=async function(){
+  var d=null;
+  try{d=(window.claude&&window.claude.use)?await window.claude.use('downloads'):null}catch(e){d=null}
+  if(!d){try{var bl=new Blob([backupText()],{type:'application/json'}),an=document.createElement('a');an.href=URL.createObjectURL(bl);an.download='cases-'+today()+'.json';document.body.appendChild(an);an.click();setTimeout(function(){URL.revokeObjectURL(an.href);an.remove()},1000);bkMsg('已產生備份檔，請到「下載項目」或「檔案」App 確認。若沒有出現，請改用下方的「複製貼上備份」。')}catch(e){bkMsg('無法下載，請改用下方的「複製貼上備份」。');$('bkBox').open=true}return}
+  try{await d.save({filename:'cases-'+today()+'.json',data:backupText()});bkMsg('備份檔已儲存。')}
+  catch(e){if(e&&e.code==='declined'){bkMsg('已取消下載。')}else{bkMsg('下載失敗（'+((e&&e.code)||'未知')+'），請改用下方的「複製貼上備份」。');$('bkBox').open=true}}
+};
+$('imp').onclick=function(){$('file').click()};
+$('file').onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){askImport(r.result)};r.onerror=function(){bkMsg('讀不到這個檔案，請改用下方的「複製貼上備份」。');$('bkBox').open=true};r.readAsText(f);e.target.value=''};
+$('bkOk').onclick=function(){if(bkPend){applyImport(bkPend);bkPend=null}$('bkOk').style.display='none'};
+$('bkShow').onclick=function(){$('bkTxt').value=backupText();bkMsg('備份文字已產生，可按「複製」。')};
+$('bkCopy').onclick=function(){if(!$('bkTxt').value)$('bkTxt').value=backupText();$('bkTxt').select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}bkMsg(ok?'已複製，請貼到記事本或筆記 App 保存。':'請在文字框內全選後自行複製。')};
+$('bkImp').onclick=function(){askImport($('bkTxt').value.trim())};
+load();render();
+})();
+</script>
+<script>
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){navigator.serviceWorker.register('sw.js').catch(function(){})}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+</script>
+</body>
+</html>
