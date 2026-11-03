@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>個案服務紀錄</title>
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#2f7d6d">
+<meta name="theme-color" content="#1f7a70">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="個案紀錄">
@@ -70,6 +70,34 @@ body[data-tab="week"] .t-case,body[data-tab="week"] .t-stat,body[data-tab="week"
 @media (max-width:600px){input,select,textarea{font-size:16px}.wrap{padding:12px}button.s{padding:8px 12px;font-size:13px}}
 details[data-id]>summary .nm{flex-basis:100%;font-size:17px}
 input[type=checkbox]{accent-color:var(--pri);transform:scale(1.25);margin:0 4px}
+:root{--bg:#f1f4f5;--card:#fff;--tx:#16262d;--mut:#5e6f77;--line:#d9e1e4;--pri:#1f7a70;--priTx:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12191c;--card:#1b2427;--tx:#e4edf0;--mut:#8fa1a8;--line:#2e3d42;--pri:#4cb5a6;--priTx:#06201c}}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.hd{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 2px}
+.hd h1{font-size:21px;margin:0;letter-spacing:.02em}
+.dt{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums}
+.sub{font-size:12px;margin-bottom:12px}
+.wrap{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+.tabs{position:fixed;top:auto;bottom:0;left:0;right:0;margin:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);border-bottom:none;justify-content:center;gap:4px}
+.tabs button[data-tab]{flex:1;max-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 4px;border:none;background:transparent;border-radius:10px}
+.tabs button[data-tab]:not(.on){color:var(--mut)}
+.tabs button[data-tab].on{color:var(--pri);background:transparent;box-shadow:inset 0 3px 0 var(--pri);border-radius:0 0 10px 10px}
+.tabs i{font-style:normal;font-size:20px;line-height:1}
+.tabs b{font-size:11px;font-weight:600;display:inline-flex;gap:4px;align-items:center}
+.tabs em{font-style:normal;background:var(--warn);color:var(--card);border-radius:99px;padding:0 6px;font-size:10px;line-height:16px}
+.stat{border-radius:10px;padding:10px 12px}
+.stat b{font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat[data-nokey]{background:var(--warnBg);border-color:transparent}
+.stat[data-nokey] b,.stat[data-nokey] span{color:var(--warn)}
+details{border-radius:12px}
+details[data-id]{border-left:4px solid var(--pri)}
+details[data-id].nok{border-left-color:var(--warn)}
+details[data-id].paused{border-left-color:var(--line)}
+.gh{color:var(--tx);font-weight:600;font-size:13px}
+button:active{transform:scale(.98)}
+.tag{padding:2px 9px}
+.tabs button>*{pointer-events:none}
+.tabs button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .gh{font-size:12px;color:var(--mut);margin:12px 0 2px}
 .goal{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
 .goal span{flex:1}
@@ -83,9 +111,9 @@ textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:
 </head>
 <body data-tab="case">
 <div class="wrap">
-<h1>個案服務紀錄</h1>
+<div class="hd"><h1>個案服務紀錄</h1><div class="dt" id="todayTx"></div></div>
 <div class="sub">資料只存在這台裝置的瀏覽器裡，不會上傳。建議定期按「匯出備份」。</div>
-<div class="tabs" id="tabs"><button data-tab="case" class="on">👥 個案</button><button data-tab="week">📅 本週</button><button data-tab="stat">📋 申報與統計</button><button data-tab="route">🛵 車程</button></div>
+<div class="tabs" id="tabs"><button data-tab="case" class="on"><i>👥</i><b>個案</b></button><button data-tab="week"><i>📅</i><b>本週</b></button><button data-tab="stat"><i>📋</i><b>申報統計</b></button><button data-tab="route"><i>🛵</i><b>車程</b></button></div>
 
 <div class="stats" id="stats"></div>
 <div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="stats" id="wsum"></div><div id="wbody"></div></div>
@@ -197,7 +225,7 @@ function render(){
   var rt=0,rcn=0;
   cases.forEach(function(c){var k=c.visits.filter(inR).length;rt+=k;if(k)rcn++});
   $('rsum').textContent=rl+'：共服務 '+rt+' 次，涉及 '+rcn+' 位個案（每位個案的次數見卡片標籤）';
-  $('tabs').querySelector('[data-tab="stat"]').textContent='📋 申報與統計'+(totNo?' ('+totNo+')':'');
+  $('tabs').querySelector('[data-tab="stat"]').innerHTML='<i>📋</i><b>申報統計'+(totNo?'<em>'+totNo+'</em>':'')+'</b>';
   var ts=$('tms').value,te=$('tme').value,tg={},tT=0,tC=0;
   cases.forEach(function(c){
     var k=c.visits.filter(function(v){var m=v.date.slice(0,7);return(!ts||m>=ts)&&(!te||m<=te)}).length;
@@ -232,7 +260,7 @@ function render(){
     if(gm!=='none'&&s!==curS){curS=s;h+='<div class="gh" style="font-size:14px;margin:16px 2px 6px"><b style="color:var(--tx)">'+esc(s)+'</b> '+(gm==='sn'?'姓':'')+'（<!--c:'+esc(s)+'-->位）</div>'}
     var last=vs.length?vs[vs.length-1].date:null;
     var since=last?diff(last,today()):null;
-    h+='<details class="'+(c.paused||c.closed?'paused':'')+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary><span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+
+    h+='<details class="'+(c.paused||c.closed?'paused':(nok?'nok':''))+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary><span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+
       '<span class="tag">'+vs.length+' / '+c.planned+' 次</span>'+'<span class="tag '+(rc?'o':'')+'">📅 '+rl+' '+rc+' 次</span>'+(c.skips&&c.skips.indexOf(ymd(wstart(0)))>=0?'<span class="tag w">⏸ 本週暫停</span>':'')+(na?'<span class="tag w">📌 預約 '+na.date.slice(5).replace('-','/')+'</span>':'')+
       (csize(c)>1?'<span class="tag">'+Math.floor(vs.length/csize(c))+' 組完成'+(vs.length%csize(c)?'・本組 '+vs.length%csize(c)+'/'+csize(c):'')+'</span>':'')+
       (gs.length?'<span class="tag">目標 '+gd+'/'+gs.length+'</span>':'<span class="tag w">未設定目標</span>')+
@@ -410,7 +438,7 @@ $('stats').onclick=function(e){var el=e.target.closest&&e.target.closest('[data-
 $('nkl').onchange=function(e){var t=e.target;if(t.getAttribute('data-act')!=='nk')return;var c=cs(t.getAttribute('data-id'));if(!c)return;c.visits.forEach(function(v){if(v.id===t.getAttribute('data-v'))v.keyed=t.checked});save();render()};
 $('nkl').onclick=function(e){var t=e.target;if(t.getAttribute&&t.getAttribute('data-act')==='nka'){var c=cs(t.getAttribute('data-id'));if(!c)return;c.visits.forEach(function(v){v.keyed=true});save();render()}};
 function setTab(t){document.body.setAttribute('data-tab',t);Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.className=b.getAttribute('data-tab')===t?'on':''});try{localStorage.setItem('ltc_tab',t)}catch(e){}}
-$('tabs').onclick=function(e){var t=e.target.getAttribute&&e.target.getAttribute('data-tab');if(t)setTab(t)};
+$('tabs').onclick=function(e){var b=e.target.closest&&e.target.closest('[data-tab]');if(b)setTab(b.getAttribute('data-tab'))};
 var st='case';try{st=localStorage.getItem('ltc_tab')||'case'}catch(e){}
 setTab(st);
 var aedit={},wOff=0,wpend={},wmiss={},MINGAP=7,REASONS=['個案請假','個案不在家','住院/就醫','家屬取消','其他'];
@@ -461,7 +489,7 @@ function renderWeek(){
   });
   if(!none.length)h+='<div class="addr">🎉 每位有在服務的個案本週都有安排</div>';
   if(skipL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">⏸ 本週暫停一次 '+skipL.length+' 位</div>'+skipL.map(function(c){return '<div class="goal"><b>'+esc(c.name)+'</b><span class="tag w" style="flex:none">本週不服務</span><button class="s" data-act="wunskip" data-id="'+c.id+'">恢復</button></div>'}).join('')}
-  $('tabs').querySelector('[data-tab="week"]').textContent='📅 本週'+(none.length&&wOff===0?' ⚠'+none.length:'');
+  $('tabs').querySelector('[data-tab="week"]').innerHTML='<i>📅</i><b>本週'+(none.length&&wOff===0?'<em>'+none.length+'</em>':'')+'</b>';
   $('wbody').innerHTML=h;
 }
 $('wprev').onclick=function(){wOff--;renderWeek()};
@@ -594,6 +622,7 @@ $('bkCopy').onclick=function(){if(!$('bkTxt').value)$('bkTxt').value=backupText(
 $('bkImp').onclick=function(){askImport($('bkTxt').value.trim())};
 var nowM2=today().slice(0,7);$('tms').value=nowM2;$('tme').value=nowM2;
 $('tms').onchange=render;$('tme').onchange=render;
+(function(){var d=new Date();$('todayTx').textContent=(d.getMonth()+1)+'/'+d.getDate()+'（週'+WD[d.getDay()]+'）'})();
 load();render();
 })();
 </script>
