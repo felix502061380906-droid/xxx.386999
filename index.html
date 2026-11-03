@@ -97,6 +97,8 @@ details[data-id].paused{border-left-color:var(--line)}
 button:active{transform:scale(.98)}
 .tag{padding:2px 9px}
 .tabs button>*{pointer-events:none}
+body:not([data-tab="todo"]) .t-todo{display:none}
+body[data-tab="todo"] .t-case,body[data-tab="todo"] .t-stat,body[data-tab="todo"] .t-route,body[data-tab="todo"] #stats{display:none}
 .tabs button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .gh{font-size:12px;color:var(--mut);margin:12px 0 2px}
 .goal{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
@@ -110,14 +112,18 @@ textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:
 </style>
 </head>
 <body data-tab="case">
+<div id="toast" style="display:none;position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:20;max-width:560px;margin:0 auto;background:var(--tx);color:var(--bg);border-radius:12px;padding:10px 14px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.25)"></div>
 <div class="wrap">
 <div class="hd"><h1>個案服務紀錄</h1><div class="dt" id="todayTx"></div></div>
 <div class="sub">資料只存在這台裝置的瀏覽器裡，不會上傳。建議定期按「匯出備份」。</div>
-<div class="tabs" id="tabs"><button data-tab="case" class="on"><i>👥</i><b>個案</b></button><button data-tab="week"><i>📅</i><b>本週</b></button><button data-tab="stat"><i>📋</i><b>申報統計</b></button><button data-tab="route"><i>🛵</i><b>車程</b></button></div>
+<div class="tabs" id="tabs"><button data-tab="case" class="on"><i>👥</i><b>個案</b></button><button data-tab="week"><i>📅</i><b>本週</b></button><button data-tab="todo"><i>✅</i><b>待辦</b></button><button data-tab="stat"><i>📋</i><b>申報統計</b></button><button data-tab="route"><i>🛵</i><b>車程</b></button></div>
 
 <div class="stats" id="stats"></div>
+<div class="t-todo"><div class="card" style="padding:12px"><div class="row" style="align-items:end"><div style="flex:1;min-width:200px"><label>新增待辦</label><input id="tdt" placeholder="例：回覆家屬、補登申報…（按 Enter 也可以加入）"></div><button class="p" id="tda">＋ 加入</button></div><div class="row" style="margin-top:8px;align-items:center" id="tdq"><button class="s" data-q="0">今天</button><button class="s" data-q="1">明天</button><button class="s" data-q="7">下週</button><input type="date" id="tdd" style="width:auto" title="到期日（可不填）"><select id="tdc" style="width:auto;max-width:150px"></select><label style="display:inline-flex;gap:4px;align-items:center;font-size:13px;color:var(--tx);margin:0"><input type="checkbox" id="tds" style="width:auto">⭐ 重要</label></div></div><div id="tdl"></div></div>
 <div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="stats" id="wsum"></div><div id="wbody"></div></div>
 <details id="nokeyBox" class="t-stat" open><summary><span class="nm">⏳ 尚未 Key 申報清單</span><span class="tag">勾選即視為已 Key</span></summary><div class="body"><div id="nkl"></div></div></details>
+<details id="xlBox" class="t-stat" open><summary><span class="nm">📤 匯出到 Excel（服務量調查）</span></summary><div class="body"><div class="row" style="align-items:end"><div><label>要填的月份</label><input type="month" id="xlm" placeholder="2026-11"></div></div><div id="xlsum" style="margin-top:10px"></div><div class="gh">① 「年度」工作表：各鄉鎮 × 服務代碼的服務次數</div><div class="row"><button class="p" id="xlc1">複製</button></div><div class="note" id="xlg1"></div><div id="xlpv"></div><div class="gh" style="margin-top:16px">② 「個案數統計」工作表</div><div id="xlcnt"></div><textarea id="xlta" rows="3" style="margin-top:8px;display:none"></textarea><div class="note" id="xlmsg"></div></div></details>
+<details id="newBox" class="t-stat" open><summary><span class="nm">🆕 各月新案名單</span></summary><div class="body"><div id="newtab"></div><div class="note">規則：每位個案「第一次服務」的月份，自動算那個月的新案。如果他其實前一個月就可以服務，但因住院、生病等原因延後，可在個案卡片展開後的「🆕 新案月份」改成前一個月，也可以寫原因。手動修改的會標註「（手動）」。</div></div></details>
 <details id="twBox" class="t-stat" open><summary><span class="nm">📍 各鄉鎮市服務人次</span></summary><div class="body"><div class="row"><div><label>起始月</label><input type="month" id="tms" placeholder="2026-11"></div><div><label>結束月</label><input type="month" id="tme" placeholder="2026-11"></div></div><div class="tw" id="twtab" style="margin-top:10px"></div><div class="note">人次＝該期間內各個案的服務次數加總（例：2 位個案各服務 2 次＝4 人次）。鄉鎮市依住址判斷，住址沒寫到鄉鎮市的會歸在「未分類」。只計算已登記的服務紀錄。</div></div></details>
 <details id="monthBox" class="t-stat" open><summary><span class="nm">📅 每月服務次數</span></summary><div class="body"><div class="tw" id="mtab"></div><div class="note" id="mnote"></div><div class="gh">預估後續各月可申報次數</div><div class="tw" id="etab"></div><div class="row" style="margin-top:8px"><div style="width:200px"><label>沒有間隔資料時，預設服務間隔（天）</label><input id="eiv" type="number" min="1" value="7"></div></div><div class="note" id="enote"></div>
 <div class="gh">各服務代碼每組次數（滿一組才可申報；數字可自行修改）</div><div id="csz" class="row"></div></div></details>
@@ -215,9 +221,15 @@ function render(){
   $('etab').innerHTML=em.length?'<table style="min-width:300px"><tr><th>月份</th><th>預估可申報次數</th><th>涉及個案數</th></tr>'+eh+'<tr><td><b>合計</b></td><td><b>'+et+'</b></td><td></td></tr></table>':'<div class="addr">目前沒有可推算的個案（需為未結案、未暫停，且尚未達預計次數）</div>';
   var cm=tdy.slice(0,7),ca=(mm[cm]&&mm[cm].g)||0,cb=est[cm]?est[cm].g:0;
   $('enote').textContent='本月（'+cm.replace('-','年')+'月）：目前已可申報 '+ca+' 次，預估還可再增加 '+cb+' 次，合計約 '+(ca+cb)+' 次。推算方式：每位個案依最近幾次的平均服務間隔，從今天起推算到預計次數為止；暫停、已結案、已達預計次數的個案不列入。這是估算，實際以服務紀錄為準。';
+  var nwm={},nwT=0;
+  cases.forEach(function(c){var m=effNew(c);if(m){(nwm[m]=nwm[m]||[]).push(c.name+(c.newMonth?'（手動）':''));nwT++}});
+  Object.keys(nwm).forEach(function(m){if(!mm[m])mm[m]={n:0,k:0,cs:{},g:0}});
+  var nws=Object.keys(nwm).sort().reverse();
+  $('newtab').innerHTML=nws.length?nws.map(function(m){return '<div class="goal" style="align-items:flex-start"><b style="flex:none;width:96px">'+mlab(m)+'</b><span>'+esc(nwm[m].join('、'))+'</span><span class="tag o" style="flex:none">'+nwm[m].length+' 位</span></div>'}).join(''):'<div class="addr">還沒有服務紀錄，所以還沒有新案</div>';
+  cases.forEach(function(c){var has=c.visits.length>0;if(pvHas.__i&&pvHas[c.id]===false&&has&&!c.newMonth)newToast(c);pvHas[c.id]=has});pvHas.__i=true;
   var ms=Object.keys(mm).sort().reverse(),mh='';
-  ms.forEach(function(m){var o=mm[m];mh+='<tr><td>'+m.replace('-','年')+'月</td><td>'+o.n+'</td><td>'+o.k+'</td><td>'+(o.n-o.k)+'</td><td>'+Object.keys(o.cs).length+'</td><td><b>'+o.g+'</b></td></tr>'});
-  $('mtab').innerHTML=ms.length?'<table style="min-width:360px"><tr><th>月份</th><th>服務次數</th><th>已申報</th><th>未申報</th><th>服務個案數</th><th>可申報次數</th></tr>'+mh+'<tr><td><b>合計</b></td><td><b>'+totV+'</b></td><td><b>'+(totV-totNo)+'</b></td><td><b>'+totNo+'</b></td><td></td><td><b>'+(totV-pend)+'</b></td></tr></table>':'<div class="addr">還沒有服務紀錄</div>';
+  ms.forEach(function(m){var o=mm[m];mh+='<tr><td>'+m.replace('-','年')+'月</td><td>'+o.n+'</td><td>'+o.k+'</td><td>'+(o.n-o.k)+'</td><td>'+Object.keys(o.cs).length+'</td><td><b>'+o.g+'</b></td><td>'+((nwm[m]||[]).length||'')+'</td></tr>'});
+  $('mtab').innerHTML=ms.length?'<table style="min-width:360px"><tr><th>月份</th><th>服務次數</th><th>已申報</th><th>未申報</th><th>服務個案數</th><th>可申報次數</th><th>新案</th></tr>'+mh+'<tr><td><b>合計</b></td><td><b>'+totV+'</b></td><td><b>'+(totV-totNo)+'</b></td><td><b>'+totNo+'</b></td><td></td><td><b>'+(totV-pend)+'</b></td><td><b>'+nwT+'</b></td></tr></table>':'<div class="addr">還沒有服務紀錄</div>';
   var rs=$('ms').value,re=$('me').value;
   var inR=function(v){var m=v.date.slice(0,7);return(!rs||m>=rs)&&(!re||m<=re)};
   var lab=function(m){return m.replace('-','年')+'月'};
@@ -266,11 +278,12 @@ function render(){
       (gs.length?'<span class="tag">目標 '+gd+'/'+gs.length+'</span>':'<span class="tag w">未設定目標</span>')+
       (nok?'<span class="tag w">'+nok+' 筆未申報</span>':(vs.length?'<span class="tag o">申報已完成</span>':''))+
       (since!=null&&!c.paused?'<span class="tag">距今 '+since+' 天</span>':'')+
-      (c.remark?'<span class="tag">'+esc(c.remark)+'</span>':'')+(c.note?'<span class="tag">📝 有備註</span>':'')+'</summary><div class="body">'+
+      (effNew(c)?'<span class="tag o">🆕 '+mlab(effNew(c))+'新案'+(c.newMonth?'・手動':'')+'</span>':'')+(c.remark?'<span class="tag">'+esc(c.remark)+'</span>':'')+(c.note?'<span class="tag">📝 有備註</span>':'')+'</summary><div class="body">'+
       (aedit[c.id]?'<div style="margin-bottom:8px"><label>住址</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="ai_'+c.id+'" value="'+esc(c.addr||'')+'" placeholder="縣市區路段"></div><button class="p s" data-act="as" data-id="'+c.id+'">儲存</button><button class="s" data-act="ax" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📍 '+esc(c.addr||'（未填住址）')+'・'+esc(tw(c.addr))+' <button class="s" data-act="ae" data-id="'+c.id+'">✎ 編輯</button></div>')+
       (c.closed?'<div class="addr">結案日期：'+esc(c.closeDate||"")+(c.closeReason?'｜原因：'+esc(c.closeReason):'')+'</div>':'')+
       (c.paused?'<div class="addr" style="color:var(--warn)">暫停日期：'+esc(c.pauseDate||"")+(c.pauseReason?'｜原因：'+esc(c.pauseReason):'')+'</div>':'')+
       (c.closed?'':'<div class="row" style="margin:4px 0 10px;align-items:end"><div><label>登記服務日期</label><input type="date" id="q_'+c.id+'" value="'+today()+'"></div><button class="p" data-act="avq" data-id="'+c.id+'">＋ 登記服務</button></div>')+
+      (vs.length?'<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>🆕 新案月份</label><select data-act="nm" data-id="'+c.id+'">'+nmOpts(c)+'</select></div><div style="flex:1;min-width:150px"><label>原因（例：住院延後）</label><input data-act="nr" data-id="'+c.id+'" value="'+esc(c.newReason||'')+'" placeholder="可不填"></div></div>':'')+
       '<div class="addr">各月服務：'+(pmh||'尚無紀錄')+'</div>'+
       '<div class="gh">個案備註</div><textarea data-act="cn" data-id="'+c.id+'" rows="2" placeholder="例：家屬聯絡方式、訪視注意事項…">'+esc(c.note||'')+'</textarea>'+
       '<div class="gh">服務目標（可直接修改文字）</div>'+
@@ -294,7 +307,7 @@ function render(){
   });
   Object.keys(cnt).forEach(function(k){h=h.replace('<!--c:'+esc(k)+'-->',cnt[k])});
   document.getElementById("list").innerHTML=h||'<div class="card empty">'+(cases.length?"沒有符合的個案":"先在上方新增第一位個案")+'</div>';
-  fillRoute();fillPick();renderWeek();
+  fillRoute();fillPick();renderWeek();renderTodo();renderXl();
 }
 
 document.getElementById("addCase").onclick=function(){
@@ -305,7 +318,7 @@ document.getElementById("addCase").onclick=function(){
   save();render();
 };
 document.getElementById("list").addEventListener("click",function(e){
-  var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt")return;
+  var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt"||act==="nm"||act==="nr")return;
   var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
   if(act==="av"){var v=document.getElementById("d_"+c.id).value;if(!v)return;c.visits.push({id:uid(),date:v,keyed:false});openIds[c.id]=1}
   if(act==="dv"){c.visits=c.visits.filter(function(x){return x.id!==t.getAttribute("data-v")});openIds[c.id]=1}
@@ -327,9 +340,11 @@ document.getElementById("list").addEventListener("click",function(e){
   save();render();
 });
 document.getElementById("list").addEventListener("change",function(e){
-  var t=e.target,ac=t.getAttribute("data-act");if(ac!=="key"&&ac!=="gs"&&ac!=="vd"&&ac!=="ca"&&ac!=="gt")return;
+  var t=e.target,ac=t.getAttribute("data-act");if(ac!=="key"&&ac!=="gs"&&ac!=="vd"&&ac!=="ca"&&ac!=="gt"&&ac!=="nm"&&ac!=="nr")return;
   var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
   if(ac==="gs"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.status=t.value})}
+  else if(ac==="nm"){if(t.value)c.newMonth=t.value;else delete c.newMonth}
+  else if(ac==="nr"){c.newReason=t.value.trim();save();return}
   else if(ac==="gt"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.text=t.value.trim()||g.text})}
   else if(ac==="ca"){c.addr=t.value.trim()}
   else if(ac==="vd"){if(!t.value){render();return}c.visits.forEach(function(v){if(v.id===t.getAttribute("data-v"))v.date=t.value})}
@@ -511,7 +526,11 @@ $('wbody').onclick=function(e){
   else if(act==='wback'){delete wpend[c.id];renderWeek();return}
   else{
     var aid=t.getAttribute('data-a'),ap=(c.appts||[]).filter(function(x){return x.id===aid})[0];if(!ap)return;
-    if(act==='wdone'){var nv={id:uid(),date:ap.date,keyed:false};c.visits.push(nv);ap.status='done';ap.vid=nv.id;delete ap.reason}
+    if(act==='wdone'){var nv={id:uid(),date:ap.date,keyed:false};c.visits.push(nv);ap.status='done';ap.vid=nv.id;delete ap.reason;
+      var mo=ap.date.slice(0,7),ext='';
+      if($('tms').value&&mo<$('tms').value){$('tms').value=mo;ext='（鄉鎮統計期間已延伸到 '+mlab(mo)+'）'}
+      if($('tme').value&&mo>$('tme').value){$('tme').value=mo;ext='（鄉鎮統計期間已延伸到 '+mlab(mo)+'）'}
+      showToast('✔ 已登記 <b>'+esc(c.name)+'</b> '+fmtD(ap.date)+' 的服務：已加入「尚未 Key 申報」清單，並計入鄉鎮人次'+ext+'。')}
     else c.appts=c.appts.filter(function(x){return x.id!==aid});
   }
   save();render();
@@ -586,13 +605,14 @@ $('pres').onclick=function(e){var t=e.target;if(!t.getAttribute||t.getAttribute(
 try{$('pst').value=localStorage.getItem('ltc_pstart')||''}catch(e){$('pst').value=''}
 function bkMsg(s){$('bkMsg').textContent=s}
 var bkPend=null;
-function backupText(){return JSON.stringify({cases:cases,routes:routes,codes:codes,sizes:sizes,eiv:$('eiv').value},null,1)}
+function backupText(){return JSON.stringify({cases:cases,routes:routes,codes:codes,sizes:sizes,todos:todos,eiv:$('eiv').value},null,1)}
 function applyImport(text){
   try{
     var d=JSON.parse(text),cl=Array.isArray(d)?d:d.cases;if(!Array.isArray(cl))throw 0;
     cases=cl;
     if(!Array.isArray(d)){
       if(d.routes)routes=d.routes;
+      if(d.todos){todos=d.todos;tsave()}
       if(d.codes&&d.codes.length){codes=d.codes;csave();fillCodes(lastCode)}
       if(d.sizes){for(var z in d.sizes)sizes[z]=d.sizes[z];ssave()}
       if(d.eiv){$('eiv').value=d.eiv;try{localStorage.setItem('ltc_eiv',d.eiv)}catch(e){}}
@@ -623,6 +643,140 @@ $('bkImp').onclick=function(){askImport($('bkTxt').value.trim())};
 var nowM2=today().slice(0,7);$('tms').value=nowM2;$('tme').value=nowM2;
 $('tms').onchange=render;$('tme').onchange=render;
 (function(){var d=new Date();$('todayTx').textContent=(d.getMonth()+1)+'/'+d.getDate()+'（週'+WD[d.getDay()]+'）'})();
+var TDKEY='ltc_todos_v1',todos=[];
+try{todos=JSON.parse(localStorage.getItem(TDKEY)||'[]')||[]}catch(e){todos=[]}
+function tsave(){try{localStorage.setItem(TDKEY,JSON.stringify(todos))}catch(e){}}
+function addTodo(){
+  var tx=$('tdt').value.trim();if(!tx){$('tdt').focus();return}
+  todos.push({id:uid(),text:tx,due:$('tdd').value||'',cid:$('tdc').value||'',star:$('tds').checked,done:false});
+  $('tdt').value='';$('tdd').value='';$('tds').checked=false;tsave();renderTodo();$('tdt').focus();
+}
+function renderTodo(){
+  if(!$('tdl'))return;
+  var t=today(),we=addD(ymd(wstart(0)),6),sel=$('tdc'),sv=sel.value;
+  sel.innerHTML='<option value="">不指定個案</option>'+sortedCases().map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join('');
+  if(cs(sv))sel.value=sv;
+  var op=todos.filter(function(x){return!x.done}),dn=todos.filter(function(x){return x.done});
+  var srt=function(a,b){if(!!b.star!==!!a.star)return b.star?1:-1;var x=a.due||'9999',y=b.due||'9999';return x<y?-1:x>y?1:0};
+  var row=function(x){
+    var c=x.cid?cs(x.cid):null,od=x.due&&!x.done&&x.due<t?diff(x.due,t):0;
+    return '<div class="goal" style="flex-wrap:wrap;gap:6px"><input type="checkbox" style="width:auto" data-td="ck" data-id="'+x.id+'"'+(x.done?' checked':'')+'><input data-td="tx" data-id="'+x.id+'" value="'+esc(x.text)+'" style="flex:1;min-width:140px;border-color:transparent;background:transparent;'+(x.done?'text-decoration:line-through;color:var(--mut)':'font-weight:500')+'">'+(c?'<span class="tag" style="flex:none">📌 '+esc(c.name)+'</span>':'')+(od?'<span class="tag w" style="flex:none">逾期 '+od+' 天</span>':'')+'<input type="date" data-td="du" data-id="'+x.id+'" value="'+esc(x.due||'')+'" style="width:auto;font-size:12px;padding:3px 6px"><button class="s" data-td="st" data-id="'+x.id+'">'+(x.star?'⭐':'☆')+'</button><button class="s" data-td="del" data-id="'+x.id+'">✕</button></div>';
+  };
+  var G=[['⚠ 已逾期',function(x){return x.due&&x.due<t}],['📍 今天',function(x){return x.due===t}],['🗓 本週內',function(x){return x.due>t&&x.due<=we}],['之後',function(x){return x.due>we}],['未訂日期',function(x){return!x.due}]];
+  var h='',urgent=0;
+  G.forEach(function(g,i){
+    var L=op.filter(g[1]).sort(srt);if(!L.length)return;
+    if(i<2)urgent+=L.length;
+    h+='<div class="gh" style="font-size:14px;margin-top:14px">'+g[0]+' ('+L.length+')</div>'+L.map(row).join('');
+  });
+  if(!op.length)h+='<div class="card empty">'+(dn.length?'🎉 目前沒有未完成的待辦':'還沒有待辦，在上方輸入第一件事吧')+'</div>';
+  if(dn.length)h+='<details style="margin-top:14px"><summary><span class="nm" style="font-size:14px">✔ 已完成 ('+dn.length+')</span></summary><div class="body">'+dn.map(row).join('')+'<div style="margin-top:8px"><button class="s" data-td="clr">清除全部已完成</button></div></div></details>';
+  $('tdl').innerHTML=h;
+  $('tabs').querySelector('[data-tab="todo"]').innerHTML='<i>✅</i><b>待辦'+(urgent?'<em>'+urgent+'</em>':'')+'</b>';
+}
+$('tda').onclick=addTodo;
+$('tdt').onkeydown=function(e){if(e.key==='Enter')addTodo()};
+$('tdq').onclick=function(e){var q=e.target.getAttribute&&e.target.getAttribute('data-q');if(q!==null&&q!==undefined)$('tdd').value=addD(today(),+q)};
+$('tdl').onclick=function(e){
+  var t=e.target,k=t.getAttribute&&t.getAttribute('data-td');if(k!=='st'&&k!=='del'&&k!=='clr')return;
+  var id=t.getAttribute('data-id'),x=todos.filter(function(y){return y.id===id})[0];
+  if(k==='st'&&x)x.star=!x.star;
+  if(k==='del')todos=todos.filter(function(y){return y.id!==id});
+  if(k==='clr')todos=todos.filter(function(y){return!y.done});
+  tsave();renderTodo();
+};
+$('tdl').onchange=function(e){
+  var t=e.target,k=t.getAttribute&&t.getAttribute('data-td');if(!k)return;
+  var id=t.getAttribute('data-id'),x=todos.filter(function(y){return y.id===id})[0];if(!x)return;
+  if(k==='tx'){x.text=t.value.trim()||x.text;t.value=x.text;tsave();return}
+  if(k==='ck')x.done=t.checked;
+  if(k==='du')x.due=t.value;
+  tsave();renderTodo();
+};
+var pvHas={};
+function mlab(m){return m.replace('-','年')+'月'}
+function addM(m,k){var p=m.split('-'),t=(+p[0])*12+(+p[1])-1+k;return Math.floor(t/12)+'-'+String(t%12+1).padStart(2,'0')}
+function effNew(c){return c.newMonth||(c.visits.length?sorted(c)[0].date.slice(0,7):'')}
+function nmOpts(c){
+  var fm=sorted(c)[0].date.slice(0,7),seen={},h='<option value=""'+(c.newMonth?'':' selected')+'>自動：'+mlab(fm)+'（首次服務月）</option>';
+  for(var k=1;k<=3;k++){var m=addM(fm,-k);seen[m]=1;h+='<option value="'+m+'"'+(c.newMonth===m?' selected':'')+'>改為 '+mlab(m)+'新案</option>'}
+  if(c.newMonth&&!seen[c.newMonth])h+='<option value="'+c.newMonth+'" selected>手動：'+mlab(c.newMonth)+'新案</option>';
+  return h;
+}
+function showToast(h){var e=$('toast');e.innerHTML=h;e.style.display='block';clearTimeout(showToast.t);showToast.t=setTimeout(function(){e.style.display='none'},15000)}
+function newToast(c){
+  var f=sorted(c)[0].date,m=f.slice(0,7),pm=addM(m,-1);
+  showToast('<div>🆕 <b>'+esc(c.name)+'</b> 第一次服務（'+fmtD(f)+'），已自動設為 <b>'+mlab(m)+'新案</b></div><div class="row" style="margin-top:6px"><button class="s" data-ta="prev" data-id="'+c.id+'">改算 '+mlab(pm)+'新案</button><button class="s p" data-ta="ok">好</button></div>');
+}
+$('toast').onclick=function(e){
+  var t=e.target,k=t.getAttribute&&t.getAttribute('data-ta');if(!k)return;
+  if(k==='prev'){var c=cs(t.getAttribute('data-id'));if(c&&c.visits.length){c.newMonth=addM(sorted(c)[0].date.slice(0,7),-1);save();render()}}
+  $('toast').style.display='none';
+};
+var XT=['屏東市','麟洛鄉','萬丹鄉','長治鄉','里港鄉','九如鄉','鹽埔鄉','高樹鄉','潮州鎮','竹田鄉','內埔鄉','萬巒鄉','東港鎮','南州鄉','新園鄉','崁頂鄉','琉球鄉','枋寮鄉','佳冬鄉','林邊鄉','新埤鄉','恆春鄉','滿州鄉','車城鄉','瑪家鄉','三地門','霧台鄉','泰武鄉','來義鄉','春日鄉','牡丹鄉','獅子鄉','枋山鄉'];
+var XC=['CA07','CA08','CB01','CB02','CB03','CB04','CC01','CD02'];
+function xtown(a){var t=tw(a||'').replace('南洲','南州');if(t==='恆春鎮')t='恆春鄉';if(t==='三地門鄉')t='三地門';return t}
+function xcode(c){var r=c.remark||'';for(var i=0;i<XC.length;i++)if(r.indexOf(XC[i])>=0)return XC[i];return ''}
+function xlCalc(m){
+  var g={},bad=[],tot=0;
+  cases.forEach(function(c){
+    var n=c.visits.filter(function(v){return v.date.slice(0,7)===m}).length;if(!n)return;
+    var t=xtown(c.addr),k=xcode(c);
+    if(XT.indexOf(t)<0||!k){bad.push({c:c,t:t,k:k,n:n});return}
+    g[t+'|'+k]=(g[t+'|'+k]||0)+n;tot+=n;
+  });
+  return{g:g,bad:bad,tot:tot};
+}
+function xlColumn(m,R){
+  var L=String.fromCharCode(68+(+m.slice(5))),lines=[];
+  XT.forEach(function(t,i){
+    var s=2+i*9;
+    XC.forEach(function(k){var v=R.g[t+'|'+k];lines.push(v?String(v):'')});
+    lines.push('=SUM('+L+s+':'+L+(s+7)+')');
+  });
+  return lines.join('\n');
+}
+function xlCounts(m){
+  var nw=0,old=0,cl=0,alt=0;
+  cases.forEach(function(c){
+    var hasV=c.visits.some(function(v){return v.date.slice(0,7)===m}),en=effNew(c);
+    if(en===m)nw++;
+    if(hasV&&en&&en<m)old++;
+    if(en&&en<m&&!(c.closed&&c.closeDate&&c.closeDate.slice(0,7)<m))alt++;
+    if(c.closed&&c.closeDate&&c.closeDate.slice(0,7)===m)cl++;
+  });
+  return{nw:nw,old:old,total:nw+old,cl:cl,alt:alt};
+}
+function xlCopy(txt,okMsg){
+  var ta=$('xlta');ta.style.display='block';ta.value=txt;ta.select();
+  var done=function(){$('xlmsg').textContent=okMsg;ta.style.display='none'};
+  var fail=function(){$('xlmsg').textContent='瀏覽器不允許自動複製，已把內容放在下方文字框，請手動全選複製（Ctrl/⌘ + A、Ctrl/⌘ + C）。'};
+  var legacy=function(){var ok=false;try{ok=document.execCommand('copy')}catch(e){}ok?done():fail()};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,legacy)}else legacy();
+}
+function renderXl(){
+  if(!$('xlm'))return;
+  var m=$('xlm').value||today().slice(0,7),mo=+m.slice(5),L=String.fromCharCode(68+mo),R=xlCalc(m),roc=(+m.slice(0,4))-1911;
+  var badN=R.bad.reduce(function(a,b){return a+b.n},0);
+  $('xlsum').innerHTML='<div class="stats"><div class="stat"><b>'+(R.tot+badN)+'</b><span>'+mo+'月服務人次</span></div><div class="stat"><b>'+R.tot+'</b><span>可填入 Excel</span></div>'+(badN?'<div class="stat" style="background:var(--warnBg);border-color:transparent"><b style="color:var(--warn)">'+badN+'</b><span style="color:var(--warn)">無法對應（見下方）</span></div>':'')+'</div>';
+  $('xlc1').textContent='複製「'+roc+'年度」'+mo+'月欄（'+L+'2～'+L+'298）';
+  $('xlg1').textContent='貼上方式：在 Excel 的「'+roc+'年度」工作表，點選 '+L+'2（'+mo+'月欄、屏東市 CA07 那一格），按 Ctrl+V（Mac 按 ⌘+V）。各鄉鎮小計的公式會一起貼上。注意：會取代 '+L+'2～'+L+'298 原有的數字。';
+  var rows='';
+  XT.forEach(function(t){var sub=0,tds='';XC.forEach(function(k){var v=R.g[t+'|'+k]||0;sub+=v;tds+='<td>'+(v||'')+'</td>'});if(sub)rows+='<tr><td>'+esc(t)+'</td>'+tds+'<td><b>'+sub+'</b></td></tr>'});
+  var pv=rows?'<div class="tw" style="margin-top:8px"><table style="min-width:560px"><tr><th>鄉鎮市</th>'+XC.map(function(k){return '<th>'+k+'</th>'}).join('')+'<th>小計</th></tr>'+rows+'<tr><td><b>總計</b></td>'+XC.map(function(k){var s=0;XT.forEach(function(t){s+=R.g[t+'|'+k]||0});return '<td><b>'+(s||'')+'</b></td>'}).join('')+'<td><b>'+R.tot+'</b></td></tr></table></div>':'<div class="addr">'+mo+'月還沒有可填入的服務紀錄</div>';
+  if(R.bad.length)pv+='<div class="tag w" style="display:block;margin-top:8px;white-space:normal">⚠ 這些個案無法對應到 Excel 的格子，沒有算進去：'+esc(R.bad.map(function(b){return b.c.name+'（'+(XT.indexOf(b.t)<0?(b.t==='未分類'?'住址沒寫到鄉鎮市':'鄉鎮「'+b.t+'」不在表上'):'')+(!b.k?(XT.indexOf(b.t)<0?'、':'')+'服務代碼不明':'')+'，'+b.n+' 次）'}).join('、'))+'</div>';
+  $('xlpv').innerHTML=pv;
+  var C=xlCounts(m),cl2=String.fromCharCode(65+mo);
+  $('xlcnt').innerHTML='<div class="stats"><div class="stat"><b>'+C.nw+'</b><span>新案(+)</span></div><div class="stat"><b>'+C.old+'</b><span>在案中(+)</span></div><div class="stat"><b>'+C.total+'</b><span>服務案量總計</span></div><div class="stat"><b>'+C.cl+'</b><span>結案人數</span></div></div><div class="row" style="margin-top:8px"><button class="s p" id="xlc2">複製 新案＋在案中（貼到 '+cl2+'3）</button><button class="s" id="xlc3">複製 結案人數（貼到 '+cl2+'8）</button></div><div class="note">「在案中」＝'+mo+'月有服務、但不是'+mo+'月新案的個案數。如果貴單位的定義是「所有還沒結案的個案（不論當月有沒有服務）」，這個數字是 '+C.alt+'。結案人數依你按「結案」按鈕時記錄的日期計算。</div>';
+}
+$('xlBox').onclick=function(e){
+  var id=e.target.id;if(id!=='xlc1'&&id!=='xlc2'&&id!=='xlc3')return;
+  var m=$('xlm').value||today().slice(0,7),mo=+m.slice(5);
+  if(id==='xlc1')xlCopy(xlColumn(m,xlCalc(m)),'已複製 '+mo+'月欄。請到 Excel 點選該月份欄第 2 列的那一格貼上。');
+  else{var C=xlCounts(m);if(id==='xlc2')xlCopy(C.nw+'\n'+C.old,'已複製「新案」和「在案中」，請到「個案數統計」工作表點選 '+mo+'月「新案(+)」那一格貼上。');else xlCopy(String(C.cl),'已複製結案人數。')}
+};
+$('xlm').value=today().slice(0,7);
+$('xlm').onchange=render;
 load();render();
 })();
 </script>
