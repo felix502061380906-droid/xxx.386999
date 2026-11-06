@@ -109,6 +109,24 @@ body[data-tab="todo"] .t-case,body[data-tab="todo"] .t-stat,body[data-tab="todo"
 a.btn{display:inline-block;padding:7px 12px;border-radius:8px;font-size:13px;text-decoration:none;background:var(--pri);color:var(--priTx)}
 a.btn:not([href]){opacity:.4;pointer-events:none}
 textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;resize:vertical}
+details[data-id]>summary{display:block}
+.ch{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+details[data-id]>summary .ch .nm{flex-basis:auto}
+.ch .sp{margin-left:auto}
+.cm{display:flex;gap:10px;align-items:stretch;margin-top:10px}
+.mc{flex:1.2;min-width:0}
+.mc b{font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.mc .u{color:var(--mut);font-size:13px}
+.bar{height:6px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--pri);border-radius:99px}
+.mk{flex:1;border-radius:10px;padding:8px 10px;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;text-align:center}
+.mk.ok{background:var(--okBg);color:var(--ok)}
+.mk.warn{background:var(--warnBg);color:var(--warn)}
+.mk.none{background:var(--bg);color:var(--mut);font-weight:500}
+.cg{margin-top:10px;font-size:14px;line-height:1.55}
+.cg .gi{display:block}
+.cx{margin-top:8px;font-size:12px;color:var(--mut);line-height:1.5}
+.cf{margin-top:10px;background:var(--warnBg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5}
 </style>
 </head>
 <body data-tab="case">
@@ -119,7 +137,7 @@ textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:
 <div class="tabs" id="tabs"><button data-tab="case" class="on"><i>👥</i><b>個案</b></button><button data-tab="week"><i>📅</i><b>本週</b></button><button data-tab="todo"><i>✅</i><b>待辦</b></button><button data-tab="stat"><i>📋</i><b>申報統計</b></button><button data-tab="route"><i>🛵</i><b>車程</b></button></div>
 
 <div class="stats" id="stats"></div>
-<div class="t-todo"><div class="card" style="padding:12px"><div class="row" style="align-items:end"><div style="flex:1;min-width:200px"><label>新增待辦</label><input id="tdt" placeholder="例：回覆家屬、補登申報…（按 Enter 也可以加入）"></div><button class="p" id="tda">＋ 加入</button></div><div class="row" style="margin-top:8px;align-items:center" id="tdq"><button class="s" data-q="0">今天</button><button class="s" data-q="1">明天</button><button class="s" data-q="7">下週</button><input type="date" id="tdd" style="width:auto" title="到期日（可不填）"><select id="tdc" style="width:auto;max-width:150px"></select><label style="display:inline-flex;gap:4px;align-items:center;font-size:13px;color:var(--tx);margin:0"><input type="checkbox" id="tds" style="width:auto">⭐ 重要</label></div></div><div id="tdl"></div></div>
+<div class="t-todo"><div class="card" style="padding:12px"><div class="row" style="align-items:end"><div style="flex:1;min-width:200px"><label>新增待辦</label><input id="tdt" placeholder="例：回覆家屬、補登申報…（按 Enter 會先跟你確認）"></div><button class="p" id="tda">＋ 加入</button></div><div class="row" style="margin-top:8px;align-items:center" id="tdq"><button class="s" data-q="0">今天</button><button class="s" data-q="1">明天</button><button class="s" data-q="7">下週</button><input type="date" id="tdd" style="width:auto" title="到期日（可不填）"><select id="tdc" style="width:auto;max-width:150px"></select><label style="display:inline-flex;gap:4px;align-items:center;font-size:13px;color:var(--tx);margin:0"><input type="checkbox" id="tds" style="width:auto">⭐ 重要</label></div></div><div id="tdcf"></div><div id="tdl"></div></div>
 <div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="stats" id="wsum"></div><div id="wbody"></div></div>
 <details id="nokeyBox" class="t-stat" open><summary><span class="nm">⏳ 尚未 Key 申報清單</span><span class="tag">勾選即視為已 Key</span></summary><div class="body"><div id="nkl"></div></div></details>
 <details id="xlBox" class="t-stat" open><summary><span class="nm">📤 匯出到 Excel（服務量調查）</span></summary><div class="body"><div class="row" style="align-items:end"><div><label>要填的月份</label><input type="month" id="xlm" placeholder="2026-11"></div></div><div id="xlsum" style="margin-top:10px"></div><div class="gh">① 「年度」工作表：各鄉鎮 × 服務代碼的服務次數</div><div class="row"><button class="p" id="xlc1">複製</button></div><div class="note" id="xlg1"></div><div id="xlpv"></div><div class="gh" style="margin-top:16px">② 「個案數統計」工作表</div><div id="xlcnt"></div><textarea id="xlta" rows="3" style="margin-top:8px;display:none"></textarea><div class="note" id="xlmsg"></div></div></details>
@@ -131,6 +149,8 @@ textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:
 <details id="addBox" class="t-case"><summary><span class="nm">＋ 新增個案</span></summary><div class="body"><div class="grid">
     <div><label>姓名</label><input id="nm" placeholder="例：王小明"></div>
     <div><label>住址</label><input id="ad" placeholder="縣市區路段"></div>
+    <div><label>聯絡電話（可不填）</label><input id="ph" type="tel" inputmode="tel" placeholder="例：0912-345-678"></div>
+    <div><label>CMS 等級（失能等級）</label><select id="cm"><option value="">未填</option><option value="1">第 1 級</option><option value="2">第 2 級</option><option value="3">第 3 級</option><option value="4">第 4 級</option><option value="5">第 5 級</option><option value="6">第 6 級</option><option value="7">第 7 級</option><option value="8">第 8 級</option></select></div>
     <div><label>預計服務次數</label><input id="pl" type="number" min="1" value="9"></div>
     <div><label>服務代碼</label><select id="rm"></select><div id="rnew" style="display:none;gap:6px;margin-top:6px"><input id="rnv" placeholder="例：BA07"><button class="s" id="rna" type="button">加入</button></div></div>
     <div><label>服務目標（可之後再加）</label><input id="gl" placeholder="例：助行器從客廳走到臥室"></div>
@@ -190,7 +210,7 @@ var openIds={};
 function render(){
   var q=document.getElementById("q").value.trim(),f=document.getElementById("f").value;
   var totV=0,totNo=0;
-  cases.forEach(function(c){totV+=c.visits.length;totNo+=c.visits.filter(function(v){return!v.keyed}).length});
+  cases.forEach(function(c){var mv=c.visits.filter(function(v){return!v.other});totV+=mv.length;totNo+=mv.filter(function(v){return!v.keyed}).length});
   document.getElementById("stats").innerHTML=
    '<div class="stat"><b>'+cases.filter(function(x){return!x.closed}).length+'</b><span>未結案</span></div>'+
    '<div class="stat"><b>'+cases.filter(function(x){return x.closed}).length+'</b><span>已結案</span></div>'+
@@ -198,9 +218,9 @@ function render(){
    '<div class="stat" data-nokey="1" style="cursor:pointer"><b>'+totNo+'</b><span>尚未 Key 申報 ▾</span></div>'+
    '<div class="stat"><b>'+cases.filter(function(x){return x.paused&&!x.closed}).length+'</b><span>暫停中</span></div>';
   var mm={};
-  cases.forEach(function(c){c.visits.forEach(function(v){var m=v.date.slice(0,7),o=mm[m]||(mm[m]={n:0,k:0,cs:{},g:0});o.n++;if(v.keyed)o.k++;o.cs[c.id]=1})});
+  cases.forEach(function(c){c.visits.forEach(function(v){if(v.other)return;var m=v.date.slice(0,7),o=mm[m]||(mm[m]={n:0,k:0,cs:{},g:0});o.n++;if(v.keyed)o.k++;o.cs[c.id]=1})});
   var pend=0;
-  cases.forEach(function(c){var S=csize(c),vs=sorted(c),full=Math.floor(vs.length/S);pend+=vs.length-full*S;for(var i=1;i<=full;i++){var m=vs[i*S-1].date.slice(0,7);mm[m].g+=S}});
+  cases.forEach(function(c){var S=csize(c),vs=sorted(c),full=Math.floor(vs.length/S);vs.forEach(function(v,ix){if(!v.other&&Math.floor(ix/S)>=full)pend++});for(var i=1;i<=full;i++){var m=vs[i*S-1].date.slice(0,7),mine=vs.slice((i-1)*S,i*S).filter(function(v){return!v.other}).length;(mm[m]||(mm[m]={n:0,k:0,cs:{},g:0})).g+=mine}});
   $('mnote').textContent='可申報次數＝當月「完成整組」的次數合計（以該組最後一次服務的月份計，不論前幾次是否跨月）。目前未滿組、尚不可申報的服務共 '+pend+' 次。';
   fillSizes();
   var est={},ivDef=parseInt($('eiv').value,10)||7,tdy=today();
@@ -226,12 +246,12 @@ function render(){
   Object.keys(nwm).forEach(function(m){if(!mm[m])mm[m]={n:0,k:0,cs:{},g:0}});
   var nws=Object.keys(nwm).sort().reverse();
   $('newtab').innerHTML=nws.length?nws.map(function(m){return '<div class="goal" style="align-items:flex-start"><b style="flex:none;width:96px">'+mlab(m)+'</b><span>'+esc(nwm[m].join('、'))+'</span><span class="tag o" style="flex:none">'+nwm[m].length+' 位</span></div>'}).join(''):'<div class="addr">還沒有服務紀錄，所以還沒有新案</div>';
-  cases.forEach(function(c){var has=c.visits.length>0;if(pvHas.__i&&pvHas[c.id]===false&&has&&!c.newMonth)newToast(c);pvHas[c.id]=has});pvHas.__i=true;
+  cases.forEach(function(c){var has=c.visits.length>0;if(pvHas.__i&&pvHas[c.id]===false&&has){if(!c.autoInit){c.autoInit=1;addAutoTodo(c,'初評',addD(sorted(c)[0].date,3));save()}if(!c.newMonth)newToast(c)}pvHas[c.id]=has});pvHas.__i=true;
   var ms=Object.keys(mm).sort().reverse(),mh='';
   ms.forEach(function(m){var o=mm[m];mh+='<tr><td>'+m.replace('-','年')+'月</td><td>'+o.n+'</td><td>'+o.k+'</td><td>'+(o.n-o.k)+'</td><td>'+Object.keys(o.cs).length+'</td><td><b>'+o.g+'</b></td><td>'+((nwm[m]||[]).length||'')+'</td></tr>'});
   $('mtab').innerHTML=ms.length?'<table style="min-width:360px"><tr><th>月份</th><th>服務次數</th><th>已申報</th><th>未申報</th><th>服務個案數</th><th>可申報次數</th><th>新案</th></tr>'+mh+'<tr><td><b>合計</b></td><td><b>'+totV+'</b></td><td><b>'+(totV-totNo)+'</b></td><td><b>'+totNo+'</b></td><td></td><td><b>'+(totV-pend)+'</b></td><td><b>'+nwT+'</b></td></tr></table>':'<div class="addr">還沒有服務紀錄</div>';
   var rs=$('ms').value,re=$('me').value;
-  var inR=function(v){var m=v.date.slice(0,7);return(!rs||m>=rs)&&(!re||m<=re)};
+  var inR=function(v){var m=v.date.slice(0,7);return!v.other&&(!rs||m>=rs)&&(!re||m<=re)};
   var lab=function(m){return m.replace('-','年')+'月'};
   var rl=!rs&&!re?'全部期間':(rs&&re&&rs===re?lab(rs):((rs?lab(rs):'最早')+'～'+(re?lab(re):'最新')));
   var rt=0,rcn=0;
@@ -240,7 +260,7 @@ function render(){
   $('tabs').querySelector('[data-tab="stat"]').innerHTML='<i>📋</i><b>申報統計'+(totNo?'<em>'+totNo+'</em>':'')+'</b>';
   var ts=$('tms').value,te=$('tme').value,tg={},tT=0,tC=0;
   cases.forEach(function(c){
-    var k=c.visits.filter(function(v){var m=v.date.slice(0,7);return(!ts||m>=ts)&&(!te||m<=te)}).length;
+    var k=c.visits.filter(function(v){var m=v.date.slice(0,7);return!v.other&&(!ts||m>=ts)&&(!te||m<=te)}).length;
     if(!k)return;
     var t=tw(c.addr),o=tg[t]||(tg[t]={n:0,v:0,names:[]});o.n++;o.v+=k;o.names.push(c.name+' '+k);tT+=k;tC++;
   });
@@ -248,19 +268,19 @@ function render(){
   $('twtab').innerHTML=tk.length?'<table style="min-width:420px"><tr><th>鄉鎮市</th><th>個案數</th><th>服務人次</th><th>明細（姓名 次數）</th></tr>'+tk.map(function(t){var o=tg[t];return '<tr><td>'+esc(t)+'</td><td>'+o.n+'</td><td><b>'+o.v+'</b></td><td style="font-size:12px;color:var(--mut)">'+esc(o.names.join('、'))+'</td></tr>'}).join('')+'<tr><td><b>總計</b></td><td><b>'+tC+'</b></td><td><b>'+tT+'</b></td><td></td></tr></table>':'<div class="addr">這個期間沒有服務紀錄</div>';
   var nk='';
   sortedCases().forEach(function(c){
-    var u=sorted(c).filter(function(v){return!v.keyed});if(!u.length)return;
+    var u=sorted(c).filter(function(v){return!v.keyed&&!v.other});if(!u.length)return;
     nk+='<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div class="row" style="align-items:center"><b>'+esc(c.name)+'</b>'+(c.closed?'<span class="tag">已結案</span>':'')+'<span class="tag w">'+u.length+' 筆未申報</span><button class="s" data-act="nka" data-id="'+c.id+'">全部已 Key</button></div><div style="margin-top:4px">'+u.map(function(v){var d=pd(v.date);return '<label style="display:inline-flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 10px;margin:2px 4px 2px 0;font-size:13px;color:var(--tx);cursor:pointer"><input type="checkbox" style="width:auto" data-act="nk" data-id="'+c.id+'" data-v="'+v.id+'">'+(d.getMonth()+1)+'/'+d.getDate()+'（週'+WD[d.getDay()]+'）</label>'}).join('')+'</div></div>';
   });
   $('nkl').innerHTML=nk||'<div class="addr">🎉 全部都已 Key 申報</div>';
   var h="",n=0,curS=null,cnt={};
   sortedCases().forEach(function(c){
-    var vs=sorted(c),nok=vs.filter(function(v){return!v.keyed}).length;
+    var vs=sorted(c),nok=vs.filter(function(v){return!v.keyed&&!v.other}).length;
     var gs=c.goals||[],gd=gs.filter(function(g){return g.status==="已達成"}).length;
-    var rc=vs.filter(inR).length,pm={};
+    var rc=vs.filter(inR).length,pm={},oc=vs.filter(function(v){return v.other}).length;
     var na=(c.appts||[]).filter(function(x){return x.date>=tdy&&(!x.status||x.status==='pending')}).sort(function(x,y){return x.date<y.date?-1:1})[0];
-    vs.forEach(function(v){var m=v.date.slice(0,7);pm[m]=(pm[m]||0)+1});
+    vs.forEach(function(v){if(v.other)return;var m=v.date.slice(0,7);pm[m]=(pm[m]||0)+1});
     var pmh=Object.keys(pm).sort().map(function(m){return lab(m)+' '+pm[m]+' 次'}).join('、');
-    if(q&&(c.name+c.addr+(c.note||'')).indexOf(q)<0)return;
+    if(q&&(c.name+c.addr+(c.note||'')+(c.phone||'')).indexOf(q)<0)return;
     if(f==="nokey"&&!nok)return;
     if(f==="open"&&(c.paused||c.closed||vs.length>=c.planned))return;
     if(f==="active"&&(c.paused||c.closed))return;
@@ -272,17 +292,29 @@ function render(){
     if(gm!=='none'&&s!==curS){curS=s;h+='<div class="gh" style="font-size:14px;margin:16px 2px 6px"><b style="color:var(--tx)">'+esc(s)+'</b> '+(gm==='sn'?'姓':'')+'（<!--c:'+esc(s)+'-->位）</div>'}
     var last=vs.length?vs[vs.length-1].date:null;
     var since=last?diff(last,today()):null;
-    h+='<details class="'+(c.paused||c.closed?'paused':(nok?'nok':''))+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary><span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+
-      '<span class="tag">'+vs.length+' / '+c.planned+' 次</span>'+'<span class="tag '+(rc?'o':'')+'">📅 '+rl+' '+rc+' 次</span>'+(c.skips&&c.skips.indexOf(ymd(wstart(0)))>=0?'<span class="tag w">⏸ 本週暫停</span>':'')+(na?'<span class="tag w">📌 預約 '+na.date.slice(5).replace('-','/')+'</span>':'')+
-      (csize(c)>1?'<span class="tag">'+Math.floor(vs.length/csize(c))+' 組完成'+(vs.length%csize(c)?'・本組 '+vs.length%csize(c)+'/'+csize(c):'')+'</span>':'')+
-      (gs.length?'<span class="tag">目標 '+gd+'/'+gs.length+'</span>':'<span class="tag w">未設定目標</span>')+
-      (nok?'<span class="tag w">'+nok+' 筆未申報</span>':(vs.length?'<span class="tag o">申報已完成</span>':''))+
-      (since!=null&&!c.paused?'<span class="tag">距今 '+since+' 天</span>':'')+
-      (effNew(c)?'<span class="tag o">🆕 '+mlab(effNew(c))+'新案'+(c.newMonth?'・手動':'')+'</span>':'')+(c.remark?'<span class="tag">'+esc(c.remark)+'</span>':'')+(c.note?'<span class="tag">📝 有備註</span>':'')+'</summary><div class="body">'+
-      (aedit[c.id]?'<div style="margin-bottom:8px"><label>住址</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="ai_'+c.id+'" value="'+esc(c.addr||'')+'" placeholder="縣市區路段"></div><button class="p s" data-act="as" data-id="'+c.id+'">儲存</button><button class="s" data-act="ax" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📍 '+esc(c.addr||'（未填住址）')+'・'+esc(tw(c.addr))+' <button class="s" data-act="ae" data-id="'+c.id+'">✎ 編輯</button></div>')+
+    var mineN=vs.length-oc,pct=Math.min(100,Math.round(vs.length/(c.planned||1)*100)),skipW=c.skips&&c.skips.indexOf(ymd(wstart(0)))>=0;
+    var xs=[];
+    if(c.cms)xs.push('CMS '+esc(c.cms));
+    if(c.remark)xs.push(esc(c.remark));
+    if(effNew(c))xs.push('🆕 '+mlab(effNew(c))+'新案'+(c.newMonth?'（手動）':''));
+    if(csize(c)>1)xs.push(Math.floor(vs.length/csize(c))+' 組完成'+(vs.length%csize(c)?'，本組 '+vs.length%csize(c)+'/'+csize(c):''));
+    if(na)xs.push('📌 預約 '+na.date.slice(5).replace('-','/'));
+    if(since!=null&&!c.paused)xs.push('距今 '+since+' 天');
+    xs.push(rl+' '+rc+' 次');
+    if(c.note)xs.push('📝 有備註');
+    var goalH=gs.length?'<div class="cg">'+gs.slice(0,2).map(function(g){return '<span class="gi">'+(g.status==="已達成"?'✔ <s style="color:var(--mut)">'+esc(g.text)+'</s>':(g.status==="需調整"?'⚠ ':'🎯 ')+esc(g.text))+'</span>'}).join('')+(gs.length>2?'<span class="gi" style="color:var(--mut)">… 另 '+(gs.length-2)+' 個目標</span>':'')+'</div>':'<div class="cg" style="color:var(--warn)">🎯 尚未設定目標</div>';
+    var keyH=nok?'<div class="mk warn">⚠ '+nok+' 筆未申報</div>':(mineN>0?'<div class="mk ok">✔ 申報已完成</div>':'<div class="mk none">尚無可申報</div>');
+    h+='<details class="'+(c.paused||c.closed?'paused':(nok?'nok':''))+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary>'+
+      '<div class="ch"><span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+(skipW?'<span class="tag w">⏸ 本週暫停</span>':'')+'<button class="s sp" data-act="cl" data-id="'+c.id+'">'+(c.closed?'↩ 重新開案':'結案')+'</button></div>'+(cask[c.id]==='cl'?'<div class="cf"><div>確定要結案「'+esc(c.name)+'」嗎？請選擇結案原因（點選後立即結案）：</div><div class="row" style="margin-top:6px">'+CLR.map(function(r){return '<button class="s" data-act="clr" data-id="'+c.id+'" data-r="'+r+'">'+r+'</button>'}).join('')+'<button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':'')+
+      '<div class="cm"><div class="mc"><b>'+vs.length+'</b><span class="u"> / '+c.planned+' 次'+(oc?'（含他人 '+oc+'）':'')+'</span><div class="bar"><i style="width:'+pct+'%"></i></div></div>'+keyH+'</div>'+
+      goalH+
+      '<div class="cx">'+xs.join('・')+'</div></summary><div class="body">'+
+      (aedit[c.id]?'<div style="margin-bottom:8px"><label>住址</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="ai_'+c.id+'" value="'+esc(c.addr||'')+'" placeholder="縣市區路段"></div><button class="p s" data-act="as" data-id="'+c.id+'">儲存</button><button class="s" data-act="ax" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📍 '+esc(c.addr||'（未填住址）')+'・'+esc(tw(c.addr))+' <button class="s" data-act="ae" data-id="'+c.id+'">✎ 編輯</button>'+(c.addr?' <button class="s" data-act="acp" data-id="'+c.id+'">📋 複製地址</button> <a class="btn" style="padding:5px 10px;font-size:12px" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(c.addr)+'">🗺 Google 地圖</a>':'')+'</div>')+
       (c.closed?'<div class="addr">結案日期：'+esc(c.closeDate||"")+(c.closeReason?'｜原因：'+esc(c.closeReason):'')+'</div>':'')+
       (c.paused?'<div class="addr" style="color:var(--warn)">暫停日期：'+esc(c.pauseDate||"")+(c.pauseReason?'｜原因：'+esc(c.pauseReason):'')+'</div>':'')+
-      (c.closed?'':'<div class="row" style="margin:4px 0 10px;align-items:end"><div><label>登記服務日期</label><input type="date" id="q_'+c.id+'" value="'+today()+'"></div><button class="p" data-act="avq" data-id="'+c.id+'">＋ 登記服務</button></div>')+
+      (c.closed?'':'<div class="row" style="margin:4px 0 10px;align-items:end"><div><label>登記服務日期</label><input type="date" id="q_'+c.id+'" value="'+today()+'"></div><button class="p" data-act="avq" data-id="'+c.id+'">＋ 登記服務</button>'+((xcode(c)==='CB04'||oc)?'<div style="width:150px"><label>他人服務（雙專業）</label><input id="qo_'+c.id+'" placeholder="職類，例：物理治療師"></div><button class="s" data-act="avo" data-id="'+c.id+'">＋ 他人服務</button>':'')+'</div>')+
+      (pedit[c.id]?'<div style="margin-bottom:8px"><label>聯絡電話（有多支可用頃號或逗號分隔）</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="pi_'+c.id+'" type="tel" inputmode="tel" value="'+esc(c.phone||'')+'" placeholder="例：0912-345-678、08-7654321"></div><button class="p s" data-act="ps" data-id="'+c.id+'">儲存</button><button class="s" data-act="px" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📞 '+(c.phone?phLinks(c.phone):'（未填電話）')+' <button class="s" data-act="pe" data-id="'+c.id+'">✎ '+(c.phone?'編輯':'新增')+'</button></div>')+
+      '<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>CMS 等級（失能等級）</label><select data-act="cms" data-id="'+c.id+'">'+cmsOpts(c.cms)+'</select></div></div>'+
       (vs.length?'<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>🆕 新案月份</label><select data-act="nm" data-id="'+c.id+'">'+nmOpts(c)+'</select></div><div style="flex:1;min-width:150px"><label>原因（例：住院延後）</label><input data-act="nr" data-id="'+c.id+'" value="'+esc(c.newReason||'')+'" placeholder="可不填"></div></div>':'')+
       '<div class="addr">各月服務：'+(pmh||'尚無紀錄')+'</div>'+
       '<div class="gh">個案備註</div><textarea data-act="cn" data-id="'+c.id+'" rows="2" placeholder="例：家屬聯絡方式、訪視注意事項…">'+esc(c.note||'')+'</textarea>'+
@@ -294,7 +326,7 @@ function render(){
     vs.forEach(function(v,i){
       var d=pd(v.date),gap=i?diff(vs[i-1].date,v.date)+" 天":"—";
       h+='<tr><td>'+(i+1)+'</td><td><input type="date" data-act="vd" data-id="'+c.id+'" data-v="'+v.id+'" value="'+v.date+'"></td><td>'+(d.getMonth()+1)+'/'+d.getDate()+'</td><td>週'+WD[d.getDay()]+'</td><td>'+gap+'</td>'+
-        '<td><input type="checkbox" style="width:auto" data-act="key" data-id="'+c.id+'" data-v="'+v.id+'"'+(v.keyed?' checked':'')+'></td>'+
+        (v.other?'<td><span class="tag" style="flex:none">他人'+(v.by?'：'+esc(v.by):'')+'</span></td>':'<td><input type="checkbox" style="width:auto" data-act="key" data-id="'+c.id+'" data-v="'+v.id+'"'+(v.keyed?' checked':'')+'></td>')+
         '<td><input data-act="vn" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.note||'')+'" placeholder="備註" style="min-width:120px"></td>'+
         '<td><button class="s" data-act="dv" data-id="'+c.id+'" data-v="'+v.id+'">刪</button></td></tr>';
     });
@@ -303,7 +335,7 @@ function render(){
       '<button class="p s" data-act="av" data-id="'+c.id+'">＋ 加入</button>'+
       (c.closed?'':'<button class="s" data-act="tp" data-id="'+c.id+'">'+(c.paused?'恢復服務':'暫停個案')+'</button>')+
       '<button class="s" data-act="cl" data-id="'+c.id+'">'+(c.closed?'重新開案':'結案')+'</button>'+
-      '<button class="s" data-act="dc" data-id="'+c.id+'">刪除此個案</button></div></div></details>';
+      ''+(cask[c.id]==='dc'?'<span class="tag w" style="flex:none">⚠ 刪除後無法復原</span><button class="s" data-act="dcy" data-id="'+c.id+'">確定刪除</button><button class="s" data-act="dcx" data-id="'+c.id+'">取消</button>':'<button class="s" data-act="dc" data-id="'+c.id+'">刪除此個案</button>')+'</div></div></details>';
   });
   Object.keys(cnt).forEach(function(k){h=h.replace('<!--c:'+esc(k)+'-->',cnt[k])});
   document.getElementById("list").innerHTML=h||'<div class="card empty">'+(cases.length?"沒有符合的個案":"先在上方新增第一位個案")+'</div>';
@@ -313,15 +345,20 @@ function render(){
 document.getElementById("addCase").onclick=function(){
   var nm=document.getElementById("nm").value.trim();
   if(!nm){document.getElementById("nm").focus();return}
-  cases.unshift({id:uid(),name:nm,addr:document.getElementById("ad").value.trim(),planned:Math.max(1,+document.getElementById("pl").value||1),remark:document.getElementById("rm").value.trim(),goals:document.getElementById("gl").value.trim()?[{id:uid(),text:document.getElementById("gl").value.trim(),status:"進行中"}]:[],visits:[]});
-  ["nm","ad","gl"].forEach(function(i){document.getElementById(i).value=""});document.getElementById("addBox").open=false;
+  cases.unshift({id:uid(),name:nm,addr:document.getElementById("ad").value.trim(),planned:Math.max(1,+document.getElementById("pl").value||1),remark:document.getElementById("rm").value.trim(),goals:document.getElementById("gl").value.trim()?[{id:uid(),text:document.getElementById("gl").value.trim(),status:"進行中"}]:[],phone:document.getElementById("ph").value.trim(),cms:document.getElementById("cm").value,visits:[]});
+  ["nm","ad","gl","ph"].forEach(function(i){document.getElementById(i).value=""});document.getElementById("cm").value="";document.getElementById("addBox").open=false;
   save();render();
 };
 document.getElementById("list").addEventListener("click",function(e){
-  var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt"||act==="nm"||act==="nr")return;
+  var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt"||act==="nm"||act==="nr"||act==="cms")return;
   var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
   if(act==="av"){var v=document.getElementById("d_"+c.id).value;if(!v)return;c.visits.push({id:uid(),date:v,keyed:false});openIds[c.id]=1}
   if(act==="dv"){c.visits=c.visits.filter(function(x){return x.id!==t.getAttribute("data-v")});openIds[c.id]=1}
+  if(act==="acp"){quickCopy(c.addr||'','地址')}
+  if(act==="avo"){var ov=document.getElementById("q_"+c.id).value;if(!ov)return;var ob=document.getElementById("qo_"+c.id);c.visits.push({id:uid(),date:ov,keyed:true,other:true,by:ob?ob.value.trim():''});openIds[c.id]=1}
+  if(act==="pe"){pedit[c.id]=1;openIds[c.id]=1}
+  if(act==="px"){delete pedit[c.id];openIds[c.id]=1}
+  if(act==="ps"){var pi=document.getElementById("pi_"+c.id);if(pi)c.phone=pi.value.trim();delete pedit[c.id];openIds[c.id]=1}
   if(act==="ae"){aedit[c.id]=1;openIds[c.id]=1}
   if(act==="ax"){delete aedit[c.id];openIds[c.id]=1}
   if(act==="as"){var ai=document.getElementById("ai_"+c.id);if(ai)c.addr=ai.value.trim();delete aedit[c.id];openIds[c.id]=1}
@@ -330,19 +367,28 @@ document.getElementById("list").addEventListener("click",function(e){
   if(act==="dg"){c.goals=(c.goals||[]).filter(function(g){return g.id!==t.getAttribute("data-g")});openIds[c.id]=1}
   if(act==="cl"){
     if(c.closed){c.closed=false;delete c.closeDate;delete c.closeReason}
-    else{var cr=prompt('結案原因（可留空）：');if(cr===null)return;c.closed=true;c.closeDate=today();c.closeReason=cr.trim();c.paused=false;delete c.pauseDate;delete c.pauseReason}
-    openIds[c.id]=1}
+    else{cask[c.id]='cl'}
+  }
+  if(act==="clx"){delete cask[c.id]}
+  if(act==="clr"){
+    delete cask[c.id];c.closed=true;c.closeDate=today();c.closeReason=t.getAttribute('data-r')||'';c.paused=false;delete c.pauseDate;delete c.pauseReason;
+    addAutoTodo(c,'結案報告',addD(today(),3));
+    showToast('✔ 已結案，並新增待辦「'+esc(c.name)+' 結案報告」（'+fmtD(addD(today(),3))+' 前完成）');
+  }
   if(act==="tp"){
     if(c.paused){c.paused=false;delete c.pauseDate;delete c.pauseReason}
-    else{var rs=prompt("暫停原因（可留空）：");if(rs===null)return;c.paused=true;c.pauseDate=today();c.pauseReason=rs.trim()}
+    else{c.paused=true;c.pauseDate=today();c.pauseReason=''}
     openIds[c.id]=1}
-  if(act==="dc"){if(!confirm("確定刪除「"+c.name+"」與其所有紀錄？"))return;cases=cases.filter(function(x){return x!==c})}
+  if(act==="dc"){cask[c.id]='dc'}
+  if(act==="dcx"){delete cask[c.id]}
+  if(act==="dcy"){cases=cases.filter(function(x){return x!==c});delete cask[c.id]}
   save();render();
 });
 document.getElementById("list").addEventListener("change",function(e){
-  var t=e.target,ac=t.getAttribute("data-act");if(ac!=="key"&&ac!=="gs"&&ac!=="vd"&&ac!=="ca"&&ac!=="gt"&&ac!=="nm"&&ac!=="nr")return;
+  var t=e.target,ac=t.getAttribute("data-act");if(ac!=="key"&&ac!=="gs"&&ac!=="vd"&&ac!=="ca"&&ac!=="gt"&&ac!=="nm"&&ac!=="nr"&&ac!=="cms")return;
   var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
   if(ac==="gs"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.status=t.value})}
+  else if(ac==="cms"){c.cms=t.value}
   else if(ac==="nm"){if(t.value)c.newMonth=t.value;else delete c.newMonth}
   else if(ac==="nr"){c.newReason=t.value.trim();save();return}
   else if(ac==="gt"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.text=t.value.trim()||g.text})}
@@ -456,7 +502,7 @@ function setTab(t){document.body.setAttribute('data-tab',t);Array.prototype.forE
 $('tabs').onclick=function(e){var b=e.target.closest&&e.target.closest('[data-tab]');if(b)setTab(b.getAttribute('data-tab'))};
 var st='case';try{st=localStorage.getItem('ltc_tab')||'case'}catch(e){}
 setTab(st);
-var aedit={},wOff=0,wpend={},wmiss={},MINGAP=7,REASONS=['個案請假','個案不在家','住院/就醫','家屬取消','其他'];
+var cask={},CLR=['個案/家屬不需要','達成目標','轉介其他單位','住院／入住機構','搬遷','過世','其他'],pedit={},aedit={},wOff=0,wpend={},wmiss={},MINGAP=7,REASONS=['個案請假','個案不在家','住院/就醫','家屬取消','其他'];
 function missTag(c){var s0=ymd(wstart(wOff)),s6=addD(s0,6);return (c.appts||[]).filter(function(x){return x.status==='missed'&&x.date>=s0&&x.date<=s6}).map(function(x){return ' <span class="tag w" style="flex:none">✖ '+fmtD(x.date)+' 未服務'+(x.reason?'：'+esc(x.reason):'')+'</span>'}).join('')}
 function addD(s,k){var d=pd(s);return ymd(new Date(d.getFullYear(),d.getMonth(),d.getDate()+k))}
 function chkGap(c,date,skipId,skipV){
@@ -481,7 +527,7 @@ function renderWeek(){
   act.forEach(function(c){
     if((c.skips||[]).indexOf(a)>=0){skipL.push(c);return}
     var ap=(c.appts||[]).filter(function(x){return inW(x.date)});
-    var vv=sorted(c).filter(function(v){return inW(v.date)});
+    var vv=sorted(c).filter(function(v){return!v.other&&inW(v.date)});
     ap.forEach(function(x){(booked[x.date]=booked[x.date]||[]).push({c:c,x:x,n:vv.length});if(x.date<t&&(!x.status||x.status==='pending'))rep++});
     var live=ap.filter(function(x){return x.status!=='missed'});
     if(live.length)nb++;
@@ -494,7 +540,7 @@ function renderWeek(){
   var h='<div class="gh" style="font-size:14px">📌 本週有約</div>';
   days.forEach(function(d){
     var L=booked[d]||[],dd=pd(d);
-    h+='<div style="display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);'+(d===t?'background:var(--okBg);border-radius:8px;':'')+'"><div style="width:72px;flex:none"><b>週'+WD[dd.getDay()]+'</b><div class="addr" style="margin:0">'+fmtD(d)+(d===t?' 今天':'')+'</div></div><div style="flex:1">'+(L.length?L.map(function(o){return '<div class="row" style="align-items:center;margin-bottom:4px"><b>'+esc(o.c.name)+'</b>'+(function(){var m=chkGap(o.c,o.x.date,o.x.id,o.x.vid);return m?'<span class="tag w">⚠ '+esc(m)+'</span>':'<span class="tag o">✓ 間隔符合 '+MINGAP+' 天</span>'})()+''+''+(o.x.status==='done'?'<span class="tag o">✔ 已服務</span>'+(function(){var v0=o.c.visits.filter(function(v){return v.id===o.x.vid})[0];return v0&&v0.keyed?'<span class="tag" style="flex:none">已 Key 申報，無法直接改回</span>':'<button class="s" data-act="wundone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">↩ 改回未服務</button>'})():o.x.status==='missed'?'<span class="tag w">✖ 沒服務到'+(o.x.reason?'：'+esc(o.x.reason):'')+'</span><button class="s" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">改為已服務</button><button class="s" data-act="wunmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">恢復待服務</button>':'<span class="tag w">🕒 已預約・未服務</span>'+(o.x.date<t?'<span class="tag w">待回報</span>':'')+'<button class="s p" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✔ 改為已服務</button><button class="s" data-act="wmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✖ 沒服務到</button>')+'<button class="s" data-act="wcan" data-id="'+o.c.id+'" data-a="'+o.x.id+'">取消預約</button>'+(wmiss[o.x.id]?'<div style="flex-basis:100%;font-size:13px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" data-id="'+o.c.id+'" data-a="'+o.x.id+'" data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" data-id="'+o.c.id+'" data-a="'+o.x.id+'">返回</button></div>':'')+'</div>'}).join(''):'<span class="addr" style="margin:0">— 沒有預約</span>')+'</div></div>';
+    h+='<div style="display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);'+(d===t?'background:var(--okBg);border-radius:8px;':'')+'"><div style="width:72px;flex:none"><b>週'+WD[dd.getDay()]+'</b><div class="addr" style="margin:0">'+fmtD(d)+(d===t?' 今天':'')+'</div></div><div style="flex:1">'+(L.length?L.map(function(o){return '<div class="row" style="align-items:center;margin-bottom:4px"><b>'+esc(o.c.name)+'</b>'+(o.c.phone?'<span class="addr" style="margin:0;flex:none">📞 '+phLinks(o.c.phone)+'</span>':'')+(function(){var m=chkGap(o.c,o.x.date,o.x.id,o.x.vid);return m?'<span class="tag w">⚠ '+esc(m)+'</span>':'<span class="tag o">✓ 間隔符合 '+MINGAP+' 天</span>'})()+''+''+(o.x.status==='done'?'<span class="tag o">✔ 已服務</span>'+(function(){var v0=o.c.visits.filter(function(v){return v.id===o.x.vid})[0];return v0&&v0.keyed?'<span class="tag" style="flex:none">已 Key 申報，無法直接改回</span>':'<button class="s" data-act="wundone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">↩ 改回未服務</button>'})():o.x.status==='missed'?'<span class="tag w">✖ 沒服務到'+(o.x.reason?'：'+esc(o.x.reason):'')+'</span><button class="s" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">改為已服務</button><button class="s" data-act="wunmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">恢復待服務</button>':'<span class="tag w">🕒 已預約・未服務</span>'+(o.x.date<t?'<span class="tag w">待回報</span>':'')+'<button class="s p" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✔ 改為已服務</button><button class="s" data-act="wmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✖ 沒服務到</button>')+'<button class="s" data-act="wcan" data-id="'+o.c.id+'" data-a="'+o.x.id+'">取消預約</button>'+(wmiss[o.x.id]?'<div style="flex-basis:100%;font-size:13px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" data-id="'+o.c.id+'" data-a="'+o.x.id+'" data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" data-id="'+o.c.id+'" data-a="'+o.x.id+'">返回</button></div>':'')+'</div>'}).join(''):'<span class="addr" style="margin:0">— 沒有預約</span>')+'</div></div>';
   });
   h+='<div class="gh" style="font-size:14px;margin-top:16px">✔ 本週已服務（沒有其他預約）'+doneL.length+' 位</div>'+(doneL.length?doneL.map(function(o){return '<div class="goal"><b>'+esc(o.c.name)+'</b>'+o.vv.map(function(v){return '<span class="tag o" style="flex:none">✔ '+fmtD(v.date)+' 已服務</span>'+(v.keyed?'<span class="tag" style="flex:none">已 Key</span>':'<button class="s" data-act="wrev" data-id="'+o.c.id+'" data-v="'+v.id+'">↩ 改回未服務</button>')}).join('')+'</div>'}).join(''):'<div class="addr">無</div>');
   h+='<div class="gh" style="font-size:14px;margin-top:16px">⚠ 本週沒約 '+none.length+' 位（最久沒服務的排前面）</div>';
@@ -706,7 +752,8 @@ function nmOpts(c){
 function showToast(h){var e=$('toast');e.innerHTML=h;e.style.display='block';clearTimeout(showToast.t);showToast.t=setTimeout(function(){e.style.display='none'},15000)}
 function newToast(c){
   var f=sorted(c)[0].date,m=f.slice(0,7),pm=addM(m,-1);
-  showToast('<div>🆕 <b>'+esc(c.name)+'</b> 第一次服務（'+fmtD(f)+'），已自動設為 <b>'+mlab(m)+'新案</b></div><div class="row" style="margin-top:6px"><button class="s" data-ta="prev" data-id="'+c.id+'">改算 '+mlab(pm)+'新案</button><button class="s p" data-ta="ok">好</button></div>');
+  var ti=todos.filter(function(t){return t.cid===c.id&&t.text.indexOf('初評')===0&&!t.done})[0],tdTxt=ti?'<div style="margin-top:4px;font-size:13px">📝 已新增待辦：初評（'+fmtD(ti.due)+' 前完成）</div>':'';
+  showToast('<div>🆕 <b>'+esc(c.name)+'</b> 第一次服務（'+fmtD(f)+'），已自動設為 <b>'+mlab(m)+'新案</b></div>'+tdTxt+'<div class="row" style="margin-top:6px"><button class="s" data-ta="prev" data-id="'+c.id+'">改算 '+mlab(pm)+'新案</button><button class="s p" data-ta="ok">好</button></div>');
 }
 $('toast').onclick=function(e){
   var t=e.target,k=t.getAttribute&&t.getAttribute('data-ta');if(!k)return;
@@ -720,7 +767,7 @@ function xcode(c){var r=c.remark||'';for(var i=0;i<XC.length;i++)if(r.indexOf(XC
 function xlCalc(m){
   var g={},bad=[],tot=0;
   cases.forEach(function(c){
-    var n=c.visits.filter(function(v){return v.date.slice(0,7)===m}).length;if(!n)return;
+    var n=c.visits.filter(function(v){return!v.other&&v.date.slice(0,7)===m}).length;if(!n)return;
     var t=xtown(c.addr),k=xcode(c);
     if(XT.indexOf(t)<0||!k){bad.push({c:c,t:t,k:k,n:n});return}
     g[t+'|'+k]=(g[t+'|'+k]||0)+n;tot+=n;
@@ -739,7 +786,7 @@ function xlColumn(m,R){
 function xlCounts(m){
   var nw=0,old=0,cl=0,alt=0;
   cases.forEach(function(c){
-    var hasV=c.visits.some(function(v){return v.date.slice(0,7)===m}),en=effNew(c);
+    var hasV=c.visits.some(function(v){return!v.other&&v.date.slice(0,7)===m}),en=effNew(c);
     if(en===m)nw++;
     if(hasV&&en&&en<m)old++;
     if(en&&en<m&&!(c.closed&&c.closeDate&&c.closeDate.slice(0,7)<m))alt++;
@@ -777,6 +824,27 @@ $('xlBox').onclick=function(e){
 };
 $('xlm').value=today().slice(0,7);
 $('xlm').onchange=render;
+function phLinks(s){return (s||'').split(/[、，,;；\/]+/).map(function(p){return p.trim()}).filter(Boolean).map(function(p){return '<a href="tel:'+esc(p.replace(/[^0-9+#*]/g,''))+'" style="color:var(--pri);font-weight:600">'+esc(p)+'</a>'}).join('　')}
+function quickCopy(txt,label){
+  var done=function(){showToast('✔ 已複製'+label+'：'+esc(txt))};
+  var legacy=function(){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(ok)done();else showToast('無法自動複製，請長按文字手動複製：'+esc(txt))};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,legacy);else legacy();
+}
+function addAutoTodo(c,label,due){
+  var tx=label+'：'+c.name;
+  if(todos.some(function(t){return t.text===tx&&!t.done}))return;
+  todos.push({id:uid(),text:tx,due:due,cid:c.id,star:false,done:false});tsave();
+}
+function cmsOpts(v){var h='<option value="">未填</option>';for(var i=1;i<=8;i++)h+='<option value="'+i+'"'+(String(v)===String(i)?' selected':'')+'>第 '+i+' 級</option>';return h}
+function askTodo(){
+  var tx=$('tdt').value.trim();if(!tx){$('tdt').focus();return}
+  var c=$('tdc').value?cs($('tdc').value):null,d=$('tdd').value;
+  $('tdcf').innerHTML='<div class="card" style="padding:12px;background:var(--warnBg);border-color:transparent"><div style="margin-bottom:8px">要加入這件待辦嗎？<br><b>'+esc(tx)+'</b>'+(d?'<br><span class="addr" style="margin:0">到期：'+fmtD(d)+'</span>':'')+(c?'　📌 '+esc(c.name):'')+($('tds').checked?'　⭐ 重要':'')+'</div><div class="row"><button class="p s" data-tc="ok">✔ 確定加入</button><button class="s" data-tc="no">✎ 繼續編輯</button></div></div>';
+}
+$('tda').onclick=askTodo;
+$('tdt').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();askTodo()}};
+$('tdcf').onclick=function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-tc');if(k==='ok'){addTodo();$('tdcf').innerHTML=''}else if(k==='no'){$('tdcf').innerHTML='';$('tdt').focus()}};
+$('list').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('summary button');if(b)e.preventDefault()},true);
 load();render();
 })();
 </script>
