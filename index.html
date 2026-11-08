@@ -305,7 +305,7 @@ function render(){
     var goalH=gs.length?'<div class="cg">'+gs.slice(0,2).map(function(g){return '<span class="gi">'+(g.status==="已達成"?'✔ <s style="color:var(--mut)">'+esc(g.text)+'</s>':(g.status==="需調整"?'⚠ ':'🎯 ')+esc(g.text))+'</span>'}).join('')+(gs.length>2?'<span class="gi" style="color:var(--mut)">… 另 '+(gs.length-2)+' 個目標</span>':'')+'</div>':'<div class="cg" style="color:var(--warn)">🎯 尚未設定目標</div>';
     var keyH=nok?'<div class="mk warn">⚠ '+nok+' 筆未申報</div>':(mineN>0?'<div class="mk ok">✔ 申報已完成</div>':'<div class="mk none">尚無可申報</div>');
     h+='<details class="'+(c.paused||c.closed?'paused':(nok?'nok':''))+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary>'+
-      '<div class="ch"><span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+(skipW?'<span class="tag w">⏸ 本週暫停</span>':'')+'<button class="s sp" data-act="cl" data-id="'+c.id+'">'+(c.closed?'↩ 重新開案':'結案')+'</button></div>'+(cask[c.id]==='cl'?'<div class="cf"><div>確定要結案「'+esc(c.name)+'」嗎？請選擇結案原因（點選後立即結案）：</div><div class="row" style="margin-top:6px">'+CLR.map(function(r){return '<button class="s" data-act="clr" data-id="'+c.id+'" data-r="'+r+'">'+r+'</button>'}).join('')+'<button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':'')+
+      '<div class="ch"><span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+(skipW?'<span class="tag w">⏸ 本週暫停</span>':'')+'<button class="s sp" data-act="cl" data-id="'+c.id+'">'+(c.closed?'↩ 重新開案':'結案')+'</button></div>'+(cask[c.id]==='cl'?'<div class="cf"><div>確定要結案「'+esc(c.name)+'」嗎？先確認結案日期，再點選結案原因（點選後立即結案）：</div><div class="row" style="margin-top:6px;align-items:center"><span>結案日期</span><input type="date" id="cd_'+c.id+'" value="'+today()+'" style="width:auto"></div><div class="row" style="margin-top:6px">'+CLR.map(function(r){return '<button class="s" data-act="clr" data-id="'+c.id+'" data-r="'+r+'">'+r+'</button>'}).join('')+'<button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':'')+
       '<div class="cm"><div class="mc"><b>'+vs.length+'</b><span class="u"> / '+c.planned+' 次'+(oc?'（含他人 '+oc+'）':'')+'</span><div class="bar"><i style="width:'+pct+'%"></i></div></div>'+keyH+'</div>'+
       goalH+
       '<div class="cx">'+xs.join('・')+'</div></summary><div class="body">'+
@@ -371,9 +371,10 @@ document.getElementById("list").addEventListener("click",function(e){
   }
   if(act==="clx"){delete cask[c.id]}
   if(act==="clr"){
-    delete cask[c.id];c.closed=true;c.closeDate=today();c.closeReason=t.getAttribute('data-r')||'';c.paused=false;delete c.pauseDate;delete c.pauseReason;
-    addAutoTodo(c,'結案報告',addD(today(),3));
-    showToast('✔ 已結案，並新增待辦「'+esc(c.name)+' 結案報告」（'+fmtD(addD(today(),3))+' 前完成）');
+    var cdE=document.getElementById('cd_'+c.id),cd=(cdE&&cdE.value)||today(),due=addD(cd>today()?cd:today(),3);
+    delete cask[c.id];c.closed=true;c.closeDate=cd;c.closeReason=t.getAttribute('data-r')||'';c.paused=false;delete c.pauseDate;delete c.pauseReason;
+    addAutoTodo(c,'結案報告',due);
+    showToast('✔ 已於 '+fmtD(cd)+' 結案，並新增待辦「'+esc(c.name)+' 結案報告」（'+fmtD(due)+' 前完成）');
   }
   if(act==="tp"){
     if(c.paused){c.paused=false;delete c.pauseDate;delete c.pauseReason}
@@ -522,25 +523,26 @@ function renderWeek(){
   var a=days[0],b=days[6];
   $('wlabel').textContent=(wOff===0?'本週　':wOff<0?(-wOff)+' 週前　':wOff+' 週後　')+fmtD(a)+' ～ '+fmtD(b);
   var inW=function(d){return d>=a&&d<=b};
-  var act=sortedCases().filter(function(c){return!c.closed&&!c.paused});
-  var booked={},nb=0,rep=0,doneL=[],none=[],skipL=[];
+  var act=sortedCases().filter(function(c){if(c.paused)return false;if(!c.closed)return true;return (c.appts||[]).some(function(x){return inW(x.date)})||c.visits.some(function(v){return!v.other&&inW(v.date)})});
+  var booked={},nb=0,rep=0,sv=0,svV=0,doneL=[],none=[],skipL=[];
   act.forEach(function(c){
     if((c.skips||[]).indexOf(a)>=0){skipL.push(c);return}
     var ap=(c.appts||[]).filter(function(x){return inW(x.date)});
     var vv=sorted(c).filter(function(v){return!v.other&&inW(v.date)});
     ap.forEach(function(x){(booked[x.date]=booked[x.date]||[]).push({c:c,x:x,n:vv.length});if(x.date<t&&(!x.status||x.status==='pending'))rep++});
     var live=ap.filter(function(x){return x.status!=='missed'});
+    if(vv.length){sv++;svV+=vv.length}
     if(live.length)nb++;
     else if(vv.length)doneL.push({c:c,vv:vv});
-    else none.push(c);
+    else if(!c.closed)none.push(c);
   });
   var sinceOf=function(c){var vs=sorted(c);return vs.length?diff(vs[vs.length-1].date,t):9999};
   none.sort(function(x,y){return sinceOf(y)-sinceOf(x)});
-  $('wsum').innerHTML='<div class="stat"><b>'+nb+'</b><span>本週有約</span></div><div class="stat"><b>'+doneL.length+'</b><span>已服務（無其他約）</span></div><div class="stat"><b>'+none.length+'</b><span>本週沒約</span></div><div class="stat"><b>'+skipL.length+'</b><span>本週暫停</span></div><div class="stat"><b>'+rep+'</b><span>待回報（日期已過）</span></div>';
+  $('wsum').innerHTML='<div class="stat"><b>'+nb+'</b><span>本週有約</span></div><div class="stat"><b>'+sv+'</b><span>本週已服務（'+svV+' 人次）</span></div><div class="stat"><b>'+none.length+'</b><span>本週沒約</span></div><div class="stat"><b>'+skipL.length+'</b><span>本週暫停</span></div><div class="stat"><b>'+rep+'</b><span>待回報（日期已過）</span></div>';
   var h='<div class="gh" style="font-size:14px">📌 本週有約</div>';
   days.forEach(function(d){
     var L=booked[d]||[],dd=pd(d);
-    h+='<div style="display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);'+(d===t?'background:var(--okBg);border-radius:8px;':'')+'"><div style="width:72px;flex:none"><b>週'+WD[dd.getDay()]+'</b><div class="addr" style="margin:0">'+fmtD(d)+(d===t?' 今天':'')+'</div></div><div style="flex:1">'+(L.length?L.map(function(o){return '<div class="row" style="align-items:center;margin-bottom:4px"><b>'+esc(o.c.name)+'</b>'+(o.c.phone?'<span class="addr" style="margin:0;flex:none">📞 '+phLinks(o.c.phone)+'</span>':'')+(function(){var m=chkGap(o.c,o.x.date,o.x.id,o.x.vid);return m?'<span class="tag w">⚠ '+esc(m)+'</span>':'<span class="tag o">✓ 間隔符合 '+MINGAP+' 天</span>'})()+''+''+(o.x.status==='done'?'<span class="tag o">✔ 已服務</span>'+(function(){var v0=o.c.visits.filter(function(v){return v.id===o.x.vid})[0];return v0&&v0.keyed?'<span class="tag" style="flex:none">已 Key 申報，無法直接改回</span>':'<button class="s" data-act="wundone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">↩ 改回未服務</button>'})():o.x.status==='missed'?'<span class="tag w">✖ 沒服務到'+(o.x.reason?'：'+esc(o.x.reason):'')+'</span><button class="s" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">改為已服務</button><button class="s" data-act="wunmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">恢復待服務</button>':'<span class="tag w">🕒 已預約・未服務</span>'+(o.x.date<t?'<span class="tag w">待回報</span>':'')+'<button class="s p" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✔ 改為已服務</button><button class="s" data-act="wmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✖ 沒服務到</button>')+'<button class="s" data-act="wcan" data-id="'+o.c.id+'" data-a="'+o.x.id+'">取消預約</button>'+(wmiss[o.x.id]?'<div style="flex-basis:100%;font-size:13px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" data-id="'+o.c.id+'" data-a="'+o.x.id+'" data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" data-id="'+o.c.id+'" data-a="'+o.x.id+'">返回</button></div>':'')+'</div>'}).join(''):'<span class="addr" style="margin:0">— 沒有預約</span>')+'</div></div>';
+    h+='<div style="display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);'+(d===t?'background:var(--okBg);border-radius:8px;':'')+'"><div style="width:72px;flex:none"><b>週'+WD[dd.getDay()]+'</b><div class="addr" style="margin:0">'+fmtD(d)+(d===t?' 今天':'')+'</div></div><div style="flex:1">'+(L.length?L.map(function(o){return '<div class="row" style="align-items:center;margin-bottom:4px"><b>'+esc(o.c.name)+'</b>'+(o.c.closed?'<span class="tag" style="flex:none">已結案</span>':'')+(function(){var m=chkGap(o.c,o.x.date,o.x.id,o.x.vid);return m?'<span class="tag w">⚠ '+esc(m)+'</span>':'<span class="tag o">✓ 間隔符合 '+MINGAP+' 天</span>'})()+''+''+(o.x.status==='done'?'<span class="tag o">✔ 已服務</span>'+(function(){var v0=o.c.visits.filter(function(v){return v.id===o.x.vid})[0];return v0&&v0.keyed?'<span class="tag" style="flex:none">已 Key 申報，無法直接改回</span>':'<button class="s" data-act="wundone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">↩ 改回未服務</button>'})():o.x.status==='missed'?'<span class="tag w">✖ 沒服務到'+(o.x.reason?'：'+esc(o.x.reason):'')+'</span><button class="s" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">改為已服務</button><button class="s" data-act="wunmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">恢復待服務</button>':'<span class="tag w">🕒 已預約・未服務</span>'+(o.x.date<t?'<span class="tag w">待回報</span>':'')+'<button class="s p" data-act="wdone" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✔ 改為已服務</button><button class="s" data-act="wmiss" data-id="'+o.c.id+'" data-a="'+o.x.id+'">✖ 沒服務到</button>')+'<button class="s" data-act="wcan" data-id="'+o.c.id+'" data-a="'+o.x.id+'">取消預約</button>'+(wmiss[o.x.id]?'<div style="flex-basis:100%;font-size:13px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" data-id="'+o.c.id+'" data-a="'+o.x.id+'" data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" data-id="'+o.c.id+'" data-a="'+o.x.id+'">返回</button></div>':'')+'</div>'}).join(''):'<span class="addr" style="margin:0">— 沒有預約</span>')+'</div></div>';
   });
   h+='<div class="gh" style="font-size:14px;margin-top:16px">✔ 本週已服務（沒有其他預約）'+doneL.length+' 位</div>'+(doneL.length?doneL.map(function(o){return '<div class="goal"><b>'+esc(o.c.name)+'</b>'+o.vv.map(function(v){return '<span class="tag o" style="flex:none">✔ '+fmtD(v.date)+' 已服務</span>'+(v.keyed?'<span class="tag" style="flex:none">已 Key</span>':'<button class="s" data-act="wrev" data-id="'+o.c.id+'" data-v="'+v.id+'">↩ 改回未服務</button>')}).join('')+'</div>'}).join(''):'<div class="addr">無</div>');
   h+='<div class="gh" style="font-size:14px;margin-top:16px">⚠ 本週沒約 '+none.length+' 位（最久沒服務的排前面）</div>';
