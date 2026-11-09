@@ -810,7 +810,7 @@ function xlCounts(m){
   cases.forEach(function(c){
     var hasV=c.visits.some(function(v){return!v.other&&v.date.slice(0,7)===m}),en=effNew(c);
     if(en===m)nw++;
-    if(hasV&&en&&en<m)old++;
+    if(en&&en<m&&!(c.closed&&c.closeDate&&c.closeDate.slice(0,7)<m))old++;
     if(en&&en<m&&!(c.closed&&c.closeDate&&c.closeDate.slice(0,7)<m))alt++;
     if(c.closed&&c.closeDate&&c.closeDate.slice(0,7)===m)cl++;
   });
@@ -836,7 +836,7 @@ function renderXl(){
   if(R.bad.length)pv+='<div class="tag w" style="display:block;margin-top:8px;white-space:normal">⚠ 這些個案無法對應到 Excel 的格子，沒有算進去：'+esc(R.bad.map(function(b){return b.c.name+'（'+(XT.indexOf(b.t)<0?(b.t==='未分類'?'住址沒寫到鄉鎮市':'鄉鎮「'+b.t+'」不在表上'):'')+(!b.k?(XT.indexOf(b.t)<0?'、':'')+'服務代碼不明':'')+'，'+b.n+' 次）'}).join('、'))+'</div>';
   $('xlpv').innerHTML=pv;
   var C=xlCounts(m),cl2=String.fromCharCode(65+mo);
-  $('xlcnt').innerHTML='<div class="stats"><div class="stat"><b>'+C.nw+'</b><span>新案(+)</span></div><div class="stat"><b>'+C.old+'</b><span>在案中(+)</span></div><div class="stat"><b>'+C.total+'</b><span>服務案量總計</span></div><div class="stat"><b>'+C.cl+'</b><span>結案人數</span></div></div><div class="row" style="margin-top:8px"><button class="s p" id="xlc2">複製 新案＋在案中（貼到 '+cl2+'3）</button><button class="s" id="xlc3">複製 結案人數（貼到 '+cl2+'8）</button></div><div class="note">「在案中」＝'+mo+'月有服務、但不是'+mo+'月新案的個案數。如果貴單位的定義是「所有還沒結案的個案（不論當月有沒有服務）」，這個數字是 '+C.alt+'。結案人數依你按「結案」按鈕時記錄的日期計算。</div>';
+  $('xlcnt').innerHTML='<div class="stats"><div class="stat"><b>'+C.nw+'</b><span>新案(+)</span></div><div class="stat"><b>'+C.old+'</b><span>在案中(+)</span></div><div class="stat"><b>'+C.total+'</b><span>服務案量總計</span></div><div class="stat"><b>'+C.cl+'</b><span>結案人數</span></div></div><div class="row" style="margin-top:8px"><button class="s p" id="xlc2">複製 新案＋在案中（貼到 '+cl2+'3）</button><button class="s" id="xlc3">複製 結案人數（貼到 '+cl2+'8）</button></div><div class="note">「在案中」＝非'+mo+'月新案、'+mo+'月以前就已在案、到'+mo+'月初還沒結案的所有個案（不論當月有沒有服務；'+mo+'月當月才結案的也算）。服務案量總計＝新案＋在案中。結案人數依結案月份計算。</div>';
 }
 $('xlBox').onclick=function(e){
   var id=e.target.id;if(id!=='xlc1'&&id!=='xlc2'&&id!=='xlc3')return;
