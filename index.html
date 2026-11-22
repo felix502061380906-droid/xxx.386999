@@ -222,6 +222,8 @@ details.apmn{position:relative;display:inline-block;margin:0;border:none;backgro
 .rrow .rv{color:var(--mut);font-size:13px;white-space:nowrap}
 details.plain{border:none;background:transparent;margin:10px 0 0}
 details.plain>summary{padding:8px 0}
+
+.pf button.nax.on{background:var(--warnBg);color:var(--warn);border-color:var(--warn);font-weight:700}
 </style>
 </head>
 <body data-tab="case">
@@ -339,6 +341,7 @@ function tIn(c){var v=bookTime(c);return '<button class="tpb'+(v?'':' e')+'" dat
 function timeBox(c,x){var st=x.status;if(st==='done'||st==='missed')return x.time?'<span class="tpb" style="border-color:var(--line);color:var(--mut);font-weight:400">🕒 '+fmtRange(x.time)+'</span>':'';return '<button class="tpb'+(x.time?'':' e')+'" data-tp="appt" data-id="'+c.id+'" data-a="'+x.id+'">🕒 '+(x.time?fmtRange(x.time):'＋ 預約時間')+'</button>'}
 function prefCmp(c,x){
   var q=c.pref;if(!q||x.other||x.status==='done'||x.status==='missed')return '';
+  var na=naHit(c,x.date);if(na)return '<span class="tag w">🚫 這天個案不行：'+esc(na)+'</span>';
   var hasD=q.d&&q.d.length,hasT=!!q.t;if(!hasD&&!hasT)return '';
   var dayOk=hasD?q.d.indexOf(pd(x.date).getDay())>=0:null,timeOk=null;
   if(hasT){if(!x.time)timeOk='none';else{var a=tmin(x.time),b=tmin(q.t);timeOk=(a!=null&&b!=null&&Math.abs(a-b)<=30)}}
@@ -348,9 +351,34 @@ function prefCmp(c,x){
   if(timeOk==='none')return '<span class="tag">🗓 偏好 '+esc(pt)+'・預約時間未填</span>';
   return '<span class="tag o">✔ 符合偏好</span>'
 }
+function naHit(c,date){
+  var q=c.pref;if(!q)return '';var wd=pd(date).getDay();
+  if((q.nd||[]).indexOf(wd)>=0)return '週'+WD[wd]+'不行';
+  var h=(q.nx||[]).filter(function(x){return x.a<=date&&date<=(x.b||x.a)})[0];
+  return h?fmtD(h.a)+(h.b&&h.b!==h.a?'～'+fmtD(h.b):'')+' 不行'+(h.r?'（'+h.r+'）':''):''
+}
+function skipNA(c,d,end){var x=d,i=0;while(naHit(c,x)&&x<=end&&i<8){x=addD(x,1);i++}return(x<=end&&!naHit(c,x))?x:d}
+function naTxt(c){
+  var q=c.pref;if(!q)return '';var t=today(),r=[];
+  var d=(q.nd||[]).slice().sort(function(a,b){return(a||7)-(b||7)}).map(function(i){return '週'+WD[i]});
+  if(d.length)r.push(d.join('、'));
+  var xs=(q.nx||[]).filter(function(x){return(x.b||x.a)>=t}).sort(function(a,b){return a.a<b.a?-1:1});
+  xs.slice(0,3).forEach(function(x){r.push(fmtD(x.a)+(x.b&&x.b!==x.a?'～'+fmtD(x.b):'')+(x.r?' '+x.r:''))});
+  if(xs.length>3)r.push('…另 '+(xs.length-3)+' 筆');
+  return r.join('、')
+}
+function naTag(c){var t=naTxt(c);return t?'<span class="tag w" style="flex:none" title="個案不行的時間">🚫 不行 '+esc(t)+'</span>':''}
+function naEdit(c){
+  var q=c.pref||{},nd=q.nd||[],t=today(),xs=(q.nx||[]).filter(function(x){return(x.b||x.a)>=t}).sort(function(a,b){return a.a<b.a?-1:1});
+  return '<div class="gh" style="margin-top:10px">🚫 個案不行的時間（預約到這些時間會提醒）</div>'+
+   '<div class="pf" style="margin-bottom:6px"><span class="addr" style="margin:0;font-size:12px">每週固定</span>'+[1,2,3,4,5,6,0].map(function(i){return '<button class="s nax'+(nd.indexOf(i)>=0?' on':'')+'" data-act="pfx" data-id="'+c.id+'" data-w="'+i+'">'+WD[i]+'</button>'}).join('')+'</div>'+
+   '<div class="pf" style="margin-bottom:6px"><span class="addr" style="margin:0;font-size:12px">特定日期</span><input type="date" id="nxa_'+c.id+'" style="width:auto"><span>～</span><input type="date" id="nxb_'+c.id+'" style="width:auto" title="結束日（只有一天可不填）"><input id="nxr_'+c.id+'" placeholder="原因（可不填）" style="flex:1;min-width:110px"><button class="s p" data-act="pfxa" data-id="'+c.id+'">＋ 加入</button></div>'+
+   (xs.length?'<div class="pf">'+xs.map(function(x){return '<span class="tag w" style="flex:none">'+fmtD(x.a)+(x.b&&x.b!==x.a?'～'+fmtD(x.b):'')+(x.r?' '+esc(x.r):'')+' <button class="s" style="padding:0 6px;border:none;background:transparent" data-act="pfxd" data-id="'+c.id+'" data-x="'+x.id+'" title="移除">✕</button></span>'}).join('')+'</div>':'')
+}
 function prefTxt(c){var q=c.pref;if(!q)return '';var d=(q.d||[]).slice().sort(function(a,b){return(a||7)-(b||7)}).map(function(i){return '週'+WD[i]}).join('、'),r=[];if(d)r.push(d);if(q.t)r.push(q.t);if(q.n)r.push(q.n);return r.join(' ')}
-function prefTag(c){var t=prefTxt(c);return t?'<span class="tag" style="flex:none" title="個案偏好">🗓 偏好 '+esc(t)+'</span>':''}
-function prefEdit(c){var q=c.pref||{},d=q.d||[];return '<div class="gh" style="margin-top:4px">🗓 偏好約訪時間（星期幾、幾點，可複選）</div><div class="pf" style="margin-bottom:8px">'+[1,2,3,4,5,6,0].map(function(i){return '<button class="s'+(d.indexOf(i)>=0?' p':'')+'" data-act="pfd" data-id="'+c.id+'" data-w="'+i+'">'+WD[i]+'</button>'}).join('')+'<button class="tpb'+(q.t?'':' e')+'" data-tp="pref" data-id="'+c.id+'">'+(q.t?'🕒 '+esc(q.t):'＋ 偏好時間')+'</button><input data-act="pfn" data-id="'+c.id+'" value="'+esc(q.n||'')+'" placeholder="補充（例：下午、不要太早）" style="flex:1;min-width:140px"></div>'}
+function prefTag(c){var t=prefTxt(c);return (t?'<span class="tag" style="flex:none" title="個案偏好">🗓 偏好 '+esc(t)+'</span>':'')+naTag(c)}
+function prefEdit(c){return prefEdit0(c)+naEdit(c)}
+function prefEdit0(c){var q=c.pref||{},d=q.d||[];return '<div class="gh" style="margin-top:4px">🗓 偏好約訪時間（星期幾、幾點，可複選）</div><div class="pf" style="margin-bottom:8px">'+[1,2,3,4,5,6,0].map(function(i){return '<button class="s'+(d.indexOf(i)>=0?' p':'')+'" data-act="pfd" data-id="'+c.id+'" data-w="'+i+'">'+WD[i]+'</button>'}).join('')+'<button class="tpb'+(q.t?'':' e')+'" data-tp="pref" data-id="'+c.id+'">'+(q.t?'🕒 '+esc(q.t):'＋ 偏好時間')+'</button><input data-act="pfn" data-id="'+c.id+'" value="'+esc(q.n||'')+'" placeholder="補充（例：下午、不要太早）" style="flex:1;min-width:140px"></div>'}
 function load(){try{var s=localStorage.getItem(KEY);cases=s?JSON.parse(s):[]}catch(e){cases=[]}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(cases))}catch(e){}}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -454,6 +482,7 @@ function render(){
     if(effNew(c))xs.push('🆕 '+mlab(effNew(c))+'新案'+(c.newMonth?'（手動）':''));
     if(csize(c)>1)xs.push(Math.floor(vs.length/csize(c))+' 組完成'+(vs.length%csize(c)?'，本組 '+vs.length%csize(c)+'/'+csize(c):''));
     if(prefTxt(c))xs.push('🗓 偏好 '+esc(prefTxt(c)));
+    if(naTxt(c))xs.push('🚫 不行 '+esc(naTxt(c)));
     if(na)xs.push('📌 預約 '+na.date.slice(5).replace('-','/')+(na.time?' '+na.time:''));
     if(since!=null&&!c.paused)xs.push('距今 '+since+' 天');
     xs.push(rl+' '+rc+' 次');
@@ -512,6 +541,9 @@ document.getElementById("addCase").onclick=function(){
 document.getElementById("list").addEventListener("click",function(e){
   var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt"||act==="nm"||act==="nr"||act==="cms"||act==="cc"||act==="ccm"||act==="mq"||act==="pft"||act==="pfn")return;
   var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
+  if(act==="pfx"){var xw=+t.getAttribute("data-w"),xq=c.pref=c.pref||{d:[],t:"",n:""},xi=(xq.nd=xq.nd||[]).indexOf(xw);if(xi>=0)xq.nd.splice(xi,1);else xq.nd.push(xw);openIds[c.id]=1}
+  if(act==="pfxa"){var xa=document.getElementById("nxa_"+c.id).value,xb=document.getElementById("nxb_"+c.id).value,xr=document.getElementById("nxr_"+c.id).value.trim();if(!xa)return;if(xb&&xb<xa){var xt=xa;xa=xb;xb=xt}var xp=c.pref=c.pref||{d:[],t:"",n:""};(xp.nx=xp.nx||[]).push({id:uid(),a:xa,b:xb||xa,r:xr});openIds[c.id]=1}
+  if(act==="pfxd"){var xd=t.getAttribute("data-x");if(c.pref)c.pref.nx=(c.pref.nx||[]).filter(function(y){return y.id!==xd});openIds[c.id]=1}
   if(act==="pfd"){var pw=+t.getAttribute("data-w"),pq=c.pref=c.pref||{d:[],t:"",n:""},pi=(pq.d=pq.d||[]).indexOf(pw);if(pi>=0)pq.d.splice(pi,1);else pq.d.push(pw);openIds[c.id]=1}
   if(act==="av"){var v=document.getElementById("d_"+c.id).value;if(!v)return;c.visits.push({id:uid(),date:v,keyed:false});openIds[c.id]=1}
   if(act==="dv"){c.visits=c.visits.filter(function(x){return x.id!==t.getAttribute("data-v")});openIds[c.id]=1}
@@ -719,12 +751,12 @@ function renderWeek(){
   h+='<div class="gh" style="font-size:14px;margin-top:16px">✔ 本週已服務（沒有其他預約）'+doneL.length+' 位</div>'+(doneL.length?doneL.map(function(o){return '<div class="goal">'+zq(o.c)+'<b>'+esc(o.c.name)+'</b>'+o.vv.map(function(v){return '<span class="tag o" style="flex:none">✔ '+fmtD(v.date)+' 已服務</span>'+recBtn(o.c,v.id)+(v.keyed?'<span class="tag" style="flex:none">已 Key</span>':'<button class="s" data-act="wrev" data-id="'+o.c.id+'" data-v="'+v.id+'">↩ 改回未服務</button>')}).join('')+'</div>'}).join(''):'<div class="addr">無</div>');
   h+='<div class="gh" style="font-size:14px;margin-top:16px">⚠ 本週沒約 '+none.length+' 位（'+(wsort==='zone'?'依區域排序':'可以先約的排前面')+'）<button class="s lk" data-act="wsrt" style="margin-left:8px">'+(wsort==='zone'?'改回依可約日排序':'改依區域排序')+'</button></div>';
   none.forEach(function(c){
-    var vs=sorted(c),last=vs.length?vs[vs.length-1].date:null,ear=earliestOk(c),dflt=wpend[c.id]?wpend[c.id].date:(function(){var base=(t>=a&&t<=b)?t:a;return ear>base?ear:base})();
+    var vs=sorted(c),last=vs.length?vs[vs.length-1].date:null,ear=earliestOk(c),dflt=wpend[c.id]?wpend[c.id].date:(function(){var base=(t>=a&&t<=b)?t:a;return skipNA(c,ear>base?ear:base,b)})();
     var tagH=last?'<span class="tag '+(ear<=t?'o':'w')+'" style="flex:none">'+(ear<=t?'✔ 現在可預約':'最快 '+fmtD(ear)+'（週'+WD[pd(ear).getDay()]+'）可約')+'</span><span class="addr" style="margin:0;font-size:12px;flex:none">上次 '+fmtD(last)+'</span>':'<span class="tag" style="flex:none">尚無服務紀錄</span>';
     h+='<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b>'+tagH+missTag(c)+mqTag(c)+prefTag(c)+'</div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'">'+tIn(c)+'<button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button>'+((xcode(c)==='CB04'||c.visits.some(function(v){return v.other}))?'<button class="s" data-act="wo" data-id="'+c.id+'">👥 本週由另一專業預約</button>':'')+'<button class="s lk" data-act="wskip" data-id="'+c.id+'">⏸ 本週暫停一次</button>'+(c.visits.length?'':'<button class="s lk" data-act="wnp" data-id="'+c.id+'">🆕 新案先不約</button>')+'</div>'+(wpend[c.id]?'<div style="background:var(--warnBg);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:13px;margin-top:8px">⚠ '+esc(wpend[c.id].msg)+'　<button class="s" data-act="wforce" data-id="'+c.id+'">仍要預約</button> <button class="s" data-act="wback" data-id="'+c.id+'">取消</button></div>':'')+'</div>';
   });
   if(!none.length)h+='<div class="addr">🎉 每位有在服務的個案本週都有安排</div>';
-  if(pendL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">🆕 新案待安排 '+pendL.length+' 位（先不約，不列入沒約提醒）</div>'+pendL.map(function(c){var dflt=(t>=a&&t<=b)?t:a;return '<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag o" style="flex:none">🆕 新案</span>'+prefTag(c)+'</div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'">'+tIn(c)+'<button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button><button class="s lk" data-act="wnpx" data-id="'+c.id+'">取消標記</button></div></div>'}).join('')}
+  if(pendL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">🆕 新案待安排 '+pendL.length+' 位（先不約，不列入沒約提醒）</div>'+pendL.map(function(c){var dflt=skipNA(c,(t>=a&&t<=b)?t:a,b);return '<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag o" style="flex:none">🆕 新案</span>'+prefTag(c)+'</div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'">'+tIn(c)+'<button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button><button class="s lk" data-act="wnpx" data-id="'+c.id+'">取消標記</button></div></div>'}).join('')}
   if(skipL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">⏸ 本週暫停一次 '+skipL.length+' 位</div>'+skipL.map(function(c){return '<div class="goal">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag w" style="flex:none">本週不服務</span><button class="s" data-act="wunskip" data-id="'+c.id+'">恢復</button></div>'}).join('')}
   $('tabs').querySelector('[data-tab="week"]').innerHTML='<i>📅</i><b>本週'+(none.length&&wOff===0?'<em>'+none.length+'</em>':'')+'</b>';
   $('wbody').innerHTML=h;
@@ -736,7 +768,7 @@ $('wnow').onclick=function(){wOff=0;renderWeek()};
 $('wbody').onclick=function(e){
   var t=e.target,act=t.getAttribute&&t.getAttribute('data-act');if(!act||act==='wtime')return;
   var c=cs(t.getAttribute('data-id'));if(!c)return;
-  if(act==='wadd'||act==='wo'){var v=$('wd_'+c.id).value;if(!v)return;var tm=bookTime(c),isO=act==='wo',gm=chkGap(c,v)||chkQuota(c,v);if(gm){wpend[c.id]={date:v,msg:gm,other:isO,time:tm};renderWeek();return}delete wpend[c.id];delete tvals[c.id];delete c.pendNew;var na0={id:uid(),date:v};if(isO){na0.other=true;na0.by=lastBy(c)}if(tm)na0.time=tm;(c.appts=c.appts||[]).push(na0)}
+  if(act==='wadd'||act==='wo'){var v=$('wd_'+c.id).value;if(!v)return;var tm=bookTime(c),isO=act==='wo',gm=(naHit(c,v)?'🚫 這天個案不行：'+naHit(c,v):'')||chkGap(c,v)||chkQuota(c,v);if(gm){wpend[c.id]={date:v,msg:gm,other:isO,time:tm};renderWeek();return}delete wpend[c.id];delete tvals[c.id];delete c.pendNew;var na0={id:uid(),date:v};if(isO){na0.other=true;na0.by=lastBy(c)}if(tm)na0.time=tm;(c.appts=c.appts||[]).push(na0)}
   else if(act==='wforce'){var pp=wpend[c.id];if(!pp)return;delete wpend[c.id];delete tvals[c.id];delete c.pendNew;var nb0={id:uid(),date:pp.date};if(pp.other){nb0.other=true;nb0.by=lastBy(c)}if(pp.time)nb0.time=pp.time;(c.appts=c.appts||[]).push(nb0)}
   else if(act==='wundone'){var uu=t.getAttribute('data-a');(c.appts||[]).forEach(function(x){if(x.id===uu){var v0=c.visits.filter(function(v){return v.id===x.vid})[0];if(v0&&v0.keyed&&!v0.other)return;c.visits=c.visits.filter(function(v){return v.id!==x.vid});delete x.status;delete x.vid}})}
   else if(act==='wrev'){var rv=t.getAttribute('data-v'),v1=c.visits.filter(function(v){return v.id===rv})[0];if(!v1||v1.keyed)return;c.visits=c.visits.filter(function(v){return v.id!==rv});(c.appts=c.appts||[]).push({id:uid(),date:v1.date})}
