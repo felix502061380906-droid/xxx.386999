@@ -153,6 +153,24 @@ button.s{min-height:32px}
 .rr input{margin-top:4px}
 .fcs{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:6px}
 .icr{margin:6px 0;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+
+.sb{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.sbg{display:grid;grid-template-columns:minmax(96px,1.4fr) 1fr 1fr 1fr;align-items:center;row-gap:2px}
+.sbh{font-size:12px;color:var(--mut);text-align:center;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.sbl{font-size:13px;color:var(--mut);padding:7px 0;border-bottom:1px solid var(--line)}
+.sbv{font-size:20px;font-weight:600;text-align:center;padding:5px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.sbv small{font-size:12px;font-weight:400;color:var(--mut);margin-left:2px}
+.sbt{background:var(--bg);border-radius:6px}
+.sbt.hi{color:var(--pri)}
+.sbg>div:nth-last-child(-n+4){border-bottom:none}
+.sbc{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{display:inline-flex;gap:4px;align-items:center;font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--mut)}
+button.chip{cursor:pointer}
+.chip.warn{background:var(--warnBg);color:var(--warn);border-color:transparent}
+.chip b{font-size:14px}
+body[data-tab="week"] #stats,body[data-tab="route"] #stats{display:none}
+.pf{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pf button{min-width:36px;padding:5px 8px}
 </style>
 </head>
 <body data-tab="case">
@@ -230,8 +248,12 @@ button.s{min-height:32px}
 
 <script>
 (function(){
+var SHOW_ICF=false; /* ICF 架構：false=隱藏（資料與程式保留，改成 true 即恢復） */
 var KEY="ltc_cases_v1",cases=[];
 var WD=["日","一","二","三","四","五","六"];
+function prefTxt(c){var q=c.pref;if(!q)return '';var d=(q.d||[]).slice().sort(function(a,b){return(a||7)-(b||7)}).map(function(i){return '週'+WD[i]}).join('、'),r=[];if(d)r.push(d);if(q.t)r.push(q.t);if(q.n)r.push(q.n);return r.join(' ')}
+function prefTag(c){var t=prefTxt(c);return t?'<span class="tag" style="flex:none" title="個案偏好">🗓 偏好 '+esc(t)+'</span>':''}
+function prefEdit(c){var q=c.pref||{},d=q.d||[];return '<div class="gh" style="margin-top:4px">🗓 偏好約訪時間（星期幾、幾點，可複選）</div><div class="pf" style="margin-bottom:8px">'+[1,2,3,4,5,6,0].map(function(i){return '<button class="s'+(d.indexOf(i)>=0?' p':'')+'" data-act="pfd" data-id="'+c.id+'" data-w="'+i+'">'+WD[i]+'</button>'}).join('')+'<input type="time" data-act="pft" data-id="'+c.id+'" value="'+esc(q.t||'')+'" style="width:auto" title="偏好時間"><input data-act="pfn" data-id="'+c.id+'" value="'+esc(q.n||'')+'" placeholder="補充（例：下午、不要太早）" style="flex:1;min-width:140px"></div>'}
 function load(){try{var s=localStorage.getItem(KEY);cases=s?JSON.parse(s):[]}catch(e){cases=[]}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(cases))}catch(e){}}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -244,14 +266,14 @@ var openIds={};
 
 function render(){
   var q=document.getElementById("q").value.trim(),f=document.getElementById("f").value;
-  var totV=0,totNo=0;
-  cases.forEach(function(c){var mv=c.visits.filter(function(v){return!v.other});totV+=mv.length;totNo+=mv.filter(function(v){return!v.keyed}).length});
+  var totV=0,totNo=0,curM=today().slice(0,7),B={u:{n:0,m:0,t:0},c:{n:0,m:0,t:0}};
+  cases.forEach(function(c){var mv=c.visits.filter(function(v){return!v.other}),g=c.closed?B.c:B.u,mn=mv.filter(function(v){return v.date.slice(0,7)===curM}).length;totV+=mv.length;totNo+=mv.filter(function(v){return!v.keyed}).length;g.n++;g.m+=mn;g.t+=mv.length});
+  var nPause=cases.filter(function(x){return x.paused&&!x.closed}).length,mNum=+curM.slice(5);
+  var sbRow=function(lb,k,u,hi){return '<div class="sbl">'+lb+'</div><div class="sbv">'+B.u[k]+'<small>'+u+'</small></div><div class="sbv">'+B.c[k]+'<small>'+u+'</small></div><div class="sbv sbt'+(hi?' hi':'')+'">'+(B.u[k]+B.c[k])+'<small>'+u+'</small></div>'};
   document.getElementById("stats").innerHTML=
-   '<div class="stat"><b>'+cases.filter(function(x){return!x.closed}).length+'</b><span>未結案</span></div>'+
-   '<div class="stat"><b>'+cases.filter(function(x){return x.closed}).length+'</b><span>已結案</span></div>'+
-   '<div class="stat"><b>'+totV+'</b><span>已服務總次數</span></div>'+
-   '<div class="stat" data-nokey="1" style="cursor:pointer"><b>'+totNo+'</b><span>尚未 Key 申報 ▾</span></div>'+
-   '<div class="stat"><b>'+cases.filter(function(x){return x.paused&&!x.closed}).length+'</b><span>暫停中</span></div>';
+   '<div class="sb"><div class="sbg"><div></div><div class="sbh">未結案個案</div><div class="sbh">已結案個案</div><div class="sbh">合計</div>'+
+   sbRow('個案數','n','位')+sbRow(mNum+' 月服務次數','m','次',1)+sbRow('累計服務次數','t','次')+'</div>'+
+   '<div class="sbc"><button class="chip'+(totNo?' warn':'')+'" data-nokey="1">⏳ 尚未 Key 申報 <b>'+totNo+'</b> ▾</button>'+(nPause?'<span class="chip">⏸ 暫停中 <b>'+nPause+'</b></span>':'')+'</div></div>';
   var mm={};
   cases.forEach(function(c){c.visits.forEach(function(v){if(v.other)return;var m=v.date.slice(0,7),o=mm[m]||(mm[m]={n:0,k:0,cs:{},g:0});o.n++;if(v.keyed)o.k++;o.cs[c.id]=1})});
   var pend=0;
@@ -334,6 +356,7 @@ function render(){
     if(c.remark)xs.push(esc(c.remark));
     if(effNew(c))xs.push('🆕 '+mlab(effNew(c))+'新案'+(c.newMonth?'（手動）':''));
     if(csize(c)>1)xs.push(Math.floor(vs.length/csize(c))+' 組完成'+(vs.length%csize(c)?'，本組 '+vs.length%csize(c)+'/'+csize(c):''));
+    if(prefTxt(c))xs.push('🗓 偏好 '+esc(prefTxt(c)));
     if(na)xs.push('📌 預約 '+na.date.slice(5).replace('-','/'));
     if(since!=null&&!c.paused)xs.push('距今 '+since+' 天');
     xs.push(rl+' '+rc+' 次');
@@ -353,6 +376,7 @@ function render(){
       (c.paused?'<div class="addr" style="color:var(--warn)">暫停日期：'+esc(c.pauseDate||"")+(c.pauseReason?'｜原因：'+esc(c.pauseReason):'')+'</div>':'')+
       (c.closed?'':'<div class="row" style="margin:4px 0 10px;align-items:end"><div><label>登記服務日期</label><input type="date" id="q_'+c.id+'" value="'+today()+'"></div><button class="p" data-act="avq" data-id="'+c.id+'">＋ 登記服務</button>'+((xcode(c)==='CB04'||oc)?'<div style="width:150px"><label>他人服務（雙專業）</label><input id="qo_'+c.id+'" placeholder="職類，例：物理治療師"></div><button class="s" data-act="avo" data-id="'+c.id+'">＋ 他人服務</button>':'')+'</div>')+
       (pedit[c.id]?'<div style="margin-bottom:8px"><label>聯絡電話（有多支可用頃號或逗號分隔）</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="pi_'+c.id+'" type="tel" inputmode="tel" value="'+esc(c.phone||'')+'" placeholder="例：0912-345-678、08-7654321"></div><button class="p s" data-act="ps" data-id="'+c.id+'">儲存</button><button class="s" data-act="px" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📞 '+(c.phone?phLinks(c.phone):'（未填電話）')+' <button class="s" data-act="pe" data-id="'+c.id+'">✎ '+(c.phone?'編輯':'新增')+'</button></div>')+
+      prefEdit(c)+
       '<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>CMS 等級（失能等級）</label><select data-act="cms" data-id="'+c.id+'">'+cmsOpts(c.cms)+'</select></div><div><label>服務代碼</label><select data-act="cc" data-id="'+c.id+'">'+codeOpts(c)+'</select></div><div><label>每月上限</label><select data-act="mq" data-id="'+c.id+'">'+mqOpts(c)+'</select></div></div>'+
       (vs.length?'<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>🆕 新案月份</label><select data-act="nm" data-id="'+c.id+'">'+nmOpts(c)+'</select></div><div style="flex:1;min-width:150px"><label>原因（例：住院延後）</label><input data-act="nr" data-id="'+c.id+'" value="'+esc(c.newReason||'')+'" placeholder="可不填"></div></div>':'')+
       '<div class="addr">各月服務：'+(pmh||'尚無紀錄')+'</div>'+
@@ -389,8 +413,9 @@ document.getElementById("addCase").onclick=function(){
   save();render();
 };
 document.getElementById("list").addEventListener("click",function(e){
-  var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt"||act==="nm"||act==="nr"||act==="cms"||act==="cc"||act==="ccm"||act==="mq")return;
+  var t=e.target,act=t.getAttribute&&t.getAttribute("data-act");if(!act||act==="key"||act==="gs"||act==="cn"||act==="vn"||act==="vd"||act==="ca"||act==="gt"||act==="nm"||act==="nr"||act==="cms"||act==="cc"||act==="ccm"||act==="mq"||act==="pft"||act==="pfn")return;
   var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
+  if(act==="pfd"){var pw=+t.getAttribute("data-w"),pq=c.pref=c.pref||{d:[],t:"",n:""},pi=(pq.d=pq.d||[]).indexOf(pw);if(pi>=0)pq.d.splice(pi,1);else pq.d.push(pw);openIds[c.id]=1}
   if(act==="av"){var v=document.getElementById("d_"+c.id).value;if(!v)return;c.visits.push({id:uid(),date:v,keyed:false});openIds[c.id]=1}
   if(act==="dv"){c.visits=c.visits.filter(function(x){return x.id!==t.getAttribute("data-v")});openIds[c.id]=1}
   if(act==="acp"){quickCopy(c.addr||'','地址')}
@@ -425,9 +450,11 @@ document.getElementById("list").addEventListener("click",function(e){
   save();render();
 });
 document.getElementById("list").addEventListener("change",function(e){
-  var t=e.target,ac=t.getAttribute("data-act");if(ac!=="key"&&ac!=="gs"&&ac!=="vd"&&ac!=="ca"&&ac!=="gt"&&ac!=="nm"&&ac!=="nr"&&ac!=="cms"&&ac!=="cc"&&ac!=="ccm"&&ac!=="mq")return;
+  var t=e.target,ac=t.getAttribute("data-act");if(ac!=="key"&&ac!=="gs"&&ac!=="vd"&&ac!=="ca"&&ac!=="gt"&&ac!=="nm"&&ac!=="nr"&&ac!=="cms"&&ac!=="cc"&&ac!=="ccm"&&ac!=="mq"&&ac!=="pft"&&ac!=="pfn")return;
   var c=cases.filter(function(x){return x.id===t.getAttribute("data-id")})[0];if(!c)return;
-  if(ac==="gs"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.status=t.value})}
+  if(ac==="pft"){(c.pref=c.pref||{d:[],t:"",n:""}).t=t.value}
+  else if(ac==="pfn"){(c.pref=c.pref||{d:[],t:"",n:""}).n=t.value.trim();save();return}
+  else if(ac==="gs"){(c.goals||[]).forEach(function(g){if(g.id===t.getAttribute("data-g"))g.status=t.value})}
   else if(ac==="cms"){c.cms=t.value}
   else if(ac==="cc"){c.remark=t.value}
   else if(ac==="mq"){if(t.value==='')delete c.mq;else c.mq=+t.value}
@@ -595,10 +622,10 @@ function renderWeek(){
   none.forEach(function(c){
     var vs=sorted(c),last=vs.length?vs[vs.length-1].date:null,ear=earliestOk(c),dflt=wpend[c.id]?wpend[c.id].date:(function(){var base=(t>=a&&t<=b)?t:a;return ear>base?ear:base})();
     var tagH=last?'<span class="tag '+(ear<=t?'o':'w')+'" style="flex:none">'+(ear<=t?'✔ 現在可預約':'最快 '+fmtD(ear)+'（週'+WD[pd(ear).getDay()]+'）可約')+'</span><span class="addr" style="margin:0;font-size:12px;flex:none">上次 '+fmtD(last)+'</span>':'<span class="tag" style="flex:none">尚無服務紀錄</span>';
-    h+='<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b>'+tagH+missTag(c)+mqTag(c)+'</div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'"><button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button>'+((xcode(c)==='CB04'||c.visits.some(function(v){return v.other}))?'<button class="s" data-act="wo" data-id="'+c.id+'">👥 本週由另一專業預約</button>':'')+'<button class="s lk" data-act="wskip" data-id="'+c.id+'">⏸ 本週暫停一次</button>'+(c.visits.length?'':'<button class="s lk" data-act="wnp" data-id="'+c.id+'">🆕 新案先不約</button>')+'</div>'+(wpend[c.id]?'<div style="background:var(--warnBg);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:13px;margin-top:8px">⚠ '+esc(wpend[c.id].msg)+'　<button class="s" data-act="wforce" data-id="'+c.id+'">仍要預約</button> <button class="s" data-act="wback" data-id="'+c.id+'">取消</button></div>':'')+'</div>';
+    h+='<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b>'+tagH+missTag(c)+mqTag(c)+prefTag(c)+'</div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'"><button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button>'+((xcode(c)==='CB04'||c.visits.some(function(v){return v.other}))?'<button class="s" data-act="wo" data-id="'+c.id+'">👥 本週由另一專業預約</button>':'')+'<button class="s lk" data-act="wskip" data-id="'+c.id+'">⏸ 本週暫停一次</button>'+(c.visits.length?'':'<button class="s lk" data-act="wnp" data-id="'+c.id+'">🆕 新案先不約</button>')+'</div>'+(wpend[c.id]?'<div style="background:var(--warnBg);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:13px;margin-top:8px">⚠ '+esc(wpend[c.id].msg)+'　<button class="s" data-act="wforce" data-id="'+c.id+'">仍要預約</button> <button class="s" data-act="wback" data-id="'+c.id+'">取消</button></div>':'')+'</div>';
   });
   if(!none.length)h+='<div class="addr">🎉 每位有在服務的個案本週都有安排</div>';
-  if(pendL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">🆕 新案待安排 '+pendL.length+' 位（先不約，不列入沒約提醒）</div>'+pendL.map(function(c){var dflt=(t>=a&&t<=b)?t:a;return '<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag o" style="flex:none">🆕 新案</span></div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'"><button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button><button class="s lk" data-act="wnpx" data-id="'+c.id+'">取消標記</button></div></div>'}).join('')}
+  if(pendL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">🆕 新案待安排 '+pendL.length+' 位（先不約，不列入沒約提醒）</div>'+pendL.map(function(c){var dflt=(t>=a&&t<=b)?t:a;return '<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag o" style="flex:none">🆕 新案</span>'+prefTag(c)+'</div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'"><button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button><button class="s lk" data-act="wnpx" data-id="'+c.id+'">取消標記</button></div></div>'}).join('')}
   if(skipL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">⏸ 本週暫停一次 '+skipL.length+' 位</div>'+skipL.map(function(c){return '<div class="goal">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag w" style="flex:none">本週不服務</span><button class="s" data-act="wunskip" data-id="'+c.id+'">恢復</button></div>'}).join('')}
   $('tabs').querySelector('[data-tab="week"]').innerHTML='<i>📅</i><b>本週'+(none.length&&wOff===0?'<em>'+none.length+'</em>':'')+'</b>';
   $('wbody').innerHTML=h;
@@ -1034,7 +1061,7 @@ function renderFocus(){
       h+='<div class="row" style="margin-top:6px">'+FCQ.map(function(q){return '<button class="s lk" data-fc="q" data-q="'+q+'">'+q+'</button>'}).join('')+'</div>';
       var ev=myRecs(c).slice(-4).reverse();
       h+='<div class="gh" style="margin-top:10px">可以參考的記錄（你寫的兩行）</div>'+(ev.length?ev.map(function(v){return '<div style="margin:4px 0;font-size:13px"><b>'+fmtD(v.date)+'</b>　做了：'+esc(v.did||'—')+'　／　反應：'+esc(v.resp||'—')+'</div>'}).join(''):'<div class="addr">還沒有記錄。每次服務後寫兩行，這裡就會出現。</div>');
-      h+=icfHtml(c);
+      if(SHOW_ICF)h+=icfHtml(c);
       h+='<label style="margin-top:10px">這週的發現（一兩句就好，可以之後再補）</label><textarea id="fca" rows="2">'+esc(r.a)+'</textarea><div class="row" style="margin-top:8px"><button class="s'+(r.done?'':' p')+'" data-fc="done">'+(r.done?'↩ 改回進行中':'✔ 完成這週的研究')+'</button></div>';
     }
   }
@@ -1190,7 +1217,7 @@ function renderPdfPv(){
    '<div><label>服務代碼'+(r.codes.length>1?'（PDF 內還有其他代碼）':'')+'</label><select id="pi_code">'+L.map(function(k){return '<option'+(k===pc?' selected':'')+'>'+esc(k)+'</option>'}).join('')+'</select></div>'+
    '<div><label>預計服務次數'+(r.codes[0]?'（'+r.codes[0].groups+' 組）':'')+'</label><input id="pi_pl" type="number" min="1" value="'+gp+'"></div></div>'+
    '<label style="margin-top:8px">專業服務目標</label><textarea id="pi_goal" rows="2">'+esc(r.goal||'')+'</textarea>'+
-   '<label style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--tx);font-size:13px"><input type="checkbox" id="pi_icf" style="width:auto" checked> 同時建立 ICF 架構雛形（在「本週深入研究」可以編輯；包含疾病名稱與功能現況，只存在你的裝置）</label>'+
+   (!SHOW_ICF?'':'<label style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--tx);font-size:13px"><input type="checkbox" id="pi_icf" style="width:auto" checked> 同時建立 ICF 架構雛形（在「本週深入研究」可以編輯；包含疾病名稱與功能現況，只存在你的裝置）</label>')+
    '<div class="note">不會帶入：身分證字號、生日、家屬與照顧者的姓名及電話、評估者與醫院單位名稱。</div>'+
    '<div class="row" style="margin-top:8px"><button class="p" id="pi_add">✔ 加入個案</button><button id="pi_cancel">取消</button></div></div>';
 }
@@ -1207,7 +1234,7 @@ $('pdfpv').onclick=function(e){
   var nm=$('pi_name').value.trim();if(!nm){pdfMsg('請填姓名（或遮蔽後的名稱）。');return}
   var gl=$('pi_goal').value.trim();
   var c={id:uid(),name:nm,addr:$('pi_addr').value.trim(),phone:$('pi_ph').value.trim(),cms:$('pi_cms').value,remark:$('pi_code').value,planned:Math.max(1,parseInt($('pi_pl').value,10)||1),goals:gl?[{id:uid(),text:gl,status:'進行中'}]:[],visits:[]};
-  if($('pi_icf').checked){var I=JSON.parse(JSON.stringify(r.icf));if(!I.goal)I.goal=gl;c.icf=I}
+  if(SHOW_ICF&&$('pi_icf')&&$('pi_icf').checked){var I=JSON.parse(JSON.stringify(r.icf));if(!I.goal)I.goal=gl;c.icf=I}
   cases.unshift(c);pdfData=null;$('pdfpv').innerHTML='';pdfMsg('');$('pdfBox').open=false;
   save();render();
   showToast('✔ 已加入個案「'+esc(nm)+'」'+(c.icf?'，並建立 ICF 架構雛形（在「本週深入研究」可以編輯）':''));
