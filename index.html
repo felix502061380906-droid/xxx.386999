@@ -627,7 +627,7 @@ function render(){
     var na=(c.appts||[]).filter(function(x){return x.date>=tdy&&(!x.status||x.status==='pending')}).sort(function(x,y){return x.date<y.date?-1:1})[0];
     vs.forEach(function(v){if(v.other)return;var m=v.date.slice(0,7);pm[m]=(pm[m]||0)+1});
     var pmh=Object.keys(pm).sort().map(function(m){return lab(m)+' '+pm[m]+' 次'}).join('、');
-    if(q&&(c.name+c.addr+(c.note||'')+(c.phone||'')).indexOf(q)<0)return;
+    if(q&&(c.name+c.addr+(c.note||'')+(c.phone||'')+(c.agent||'')).indexOf(q)<0)return;
     if(f==="nokey"&&!nok)return;
     if(f==="open"&&(c.paused||c.closed||vs.length>=c.planned))return;
     if(f==="active"&&(c.paused||c.closed))return;
@@ -664,7 +664,7 @@ function render(){
       (c.closed?'<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>結案月份（可修改）</label><input type="month" data-act="ccm" data-id="'+c.id+'" value="'+esc((c.closeDate||'').slice(0,7))+'"></div>'+(c.closeReason?'<div class="addr" style="margin:0 0 8px">原因：'+esc(c.closeReason)+'</div>':'')+'</div>':'')+
       (c.paused?'<div class="addr" style="color:var(--warn)">暫停日期：'+esc(c.pauseDate||"")+(c.pauseReason?'｜原因：'+esc(c.pauseReason):'')+'</div>':'')+
       (c.closed?'':'<div class="row" style="margin:4px 0 10px;align-items:end"><div><label>登記服務日期</label><input type="date" id="q_'+c.id+'" value="'+today()+'"></div><button class="p" data-act="avq" data-id="'+c.id+'">＋ 登記服務</button>'+((xcode(c)==='CB04'||oc)?'<div style="width:150px"><label>他人服務（雙專業）</label><input id="qo_'+c.id+'" placeholder="職類，例：物理治療師"></div><button class="s" data-act="avo" data-id="'+c.id+'">＋ 他人服務</button>':'')+'</div>')+
-      (pedit[c.id]?'<div style="margin-bottom:8px"><label>聯絡電話（有多支可用頃號或逗號分隔）</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="pi_'+c.id+'" type="tel" inputmode="tel" value="'+esc(c.phone||'')+'" placeholder="例：0912-345-678、08-7654321"></div><button class="p s" data-act="ps" data-id="'+c.id+'">儲存</button><button class="s" data-act="px" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📞 '+(c.phone?phLinks(c.phone):'（未填電話）')+' <button class="s" data-act="pe" data-id="'+c.id+'">✎ '+(c.phone?'編輯':'新增')+'</button></div>')+
+      (pedit[c.id]?'<div style="margin-bottom:8px"><label>聯絡電話（有多支可用頃號或逗號分隔）</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="pi_'+c.id+'" type="tel" inputmode="tel" value="'+esc(c.phone||'')+'" placeholder="例：0912-345-678、08-7654321"></div></div><label style="margin-top:6px">代理人電話</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="pa_'+c.id+'" type="tel" inputmode="tel" value="'+esc(c.agent||'')+'" placeholder="可不填"></div><button class="p s" data-act="ps" data-id="'+c.id+'">儲存</button><button class="s" data-act="px" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📞 '+(c.phone?phLinks(c.phone):'（未填電話）')+(c.agent?'<br>👤 代理人　'+phLinks(c.agent):'')+' <button class="s" data-act="pe" data-id="'+c.id+'">✎ '+(c.phone?'編輯':'新增')+'</button></div>')+
       prefEdit(c)+
       '<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>CMS 等級（失能等級）</label><select data-act="cms" data-id="'+c.id+'">'+cmsOpts(c.cms)+'</select></div><div><label>服務代碼</label><select data-act="cc" data-id="'+c.id+'">'+codeOpts(c)+'</select></div><div><label>每月上限</label><select data-act="mq" data-id="'+c.id+'">'+mqOpts(c)+'</select></div></div>'+
       (vs.length?'<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>🆕 新案月份</label><select data-act="nm" data-id="'+c.id+'">'+nmOpts(c)+'</select></div><div style="flex:1;min-width:150px"><label>原因（例：住院延後）</label><input data-act="nr" data-id="'+c.id+'" value="'+esc(c.newReason||'')+'" placeholder="可不填"></div></div>':'')+
@@ -714,7 +714,7 @@ document.getElementById("list").addEventListener("click",function(e){
   if(act==="avo"){var ov=document.getElementById("q_"+c.id).value;if(!ov)return;var ob=document.getElementById("qo_"+c.id);c.visits.push({id:uid(),date:ov,keyed:true,other:true,by:ob?ob.value.trim():''});openIds[c.id]=1}
   if(act==="pe"){pedit[c.id]=1;openIds[c.id]=1}
   if(act==="px"){delete pedit[c.id];openIds[c.id]=1}
-  if(act==="ps"){var pi=document.getElementById("pi_"+c.id);if(pi)c.phone=pi.value.trim();delete pedit[c.id];openIds[c.id]=1}
+  if(act==="ps"){var pi=document.getElementById("pi_"+c.id);if(pi)c.phone=pi.value.trim();var pa=document.getElementById("pa_"+c.id);if(pa)c.agent=pa.value.trim();delete pedit[c.id];openIds[c.id]=1}
   if(act==="ae"){aedit[c.id]=1;openIds[c.id]=1}
   if(act==="ax"){delete aedit[c.id];openIds[c.id]=1}
   if(act==="as"){var ai=document.getElementById("ai_"+c.id);if(ai)c.addr=ai.value.trim();delete aedit[c.id];openIds[c.id]=1}
@@ -1627,21 +1627,23 @@ function ltcPhoneFmt(n){
 }
 function ltcPhones(t){
   var out=[],seen={};
-  function add(n,tag){
+  var ag=[];
+  function add(n,tag,to){
     if(!n)return;var f=ltcPhoneFmt(n),d=f.replace(/\D/g,'');if(d.length<7||seen[d])return;seen[d]=1;
-    out.push(f+(tag?'（'+tag+'）':''));
+    (to||out).push(f+(tag?'（'+tag+'）':''));
   }
   var N='(\\d[\\d\\-]{6,13})',m;
   m=t.match(new RegExp('個案電話[ \\t]*'+N))||t.match(new RegExp(N+'[ \\t]*\\n\\s*個案電話'));if(m)add(m[1]);
   m=t.match(new RegExp('聯絡人電話(?:\\(H\\))?[ \\t]*'+N));if(m)add(m[1],'聯絡人');
   m=t.match(new RegExp('聯絡人手機[ \\t]*'+N));if(m)add(m[1],'聯絡人');
-  m=t.match(new RegExp('代理人手機[ \\t]*'+N));if(m)add(m[1],'代理人');
-  return out.join('、');
+  m=t.match(new RegExp('代理人電話(?:\\(H\\))?[ \\t]*'+N));if(m)add(m[1],'',ag);
+  m=t.match(new RegExp('代理人手機[ \\t]*'+N));if(m)add(m[1],'',ag);
+  return {phone:out.join('、'),agent:ag.join('、')};
 }
 function ltcLatestCodes(t,r){
-  var dre=/(?:擬定日期|評估日期|訪視日期)[：:]\s*(\d{3})年(\d{1,2})月(\d{1,2})日/g,ds=[],x;
+  var dre=/(?:擬定日期|評估日期|訪視日期)\s*[：:]\s*(\d{3})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/g,ds=[],x;
   while((x=dre.exec(t))!==null)ds.push({i:x.index,v:(+x[1]+1911)*10000+(+x[2])*100+(+x[3])});
-  var cre=/([A-Z]{2}\d{2})[ \t]*[，,:：]?[ \t]*共[ \t]*(\d+)[ \t]*組/g,all=[],best=0;
+  var cre=/(C[A-D]\d{2})(?:[^。共]{0,60}?共|\s*[*×xX])\s*(\d+)\s*組/g,all=[],best=0;
   var seps=[],sre=/以下為前次評估資料/g;while((x=sre.exec(t))!==null)seps.push(x.index);
   while((x=cre.exec(t))!==null){
     var seg=0;seps.forEach(function(p,k){if(x.index>p)seg=k+1});
@@ -1651,7 +1653,11 @@ function ltcLatestCodes(t,r){
     all.push({code:x[1],groups:+x[2],weeks:wk?+wk[1]:0,unit:'',date:d,seg:seg,pos:x.index});
     if(d>best)best=d;
   }
-  if(!all.length)return[];
+  if(!all.length){
+    var tm=/(C[A-D]\d{2})[^。\n]{0,24}?預計使用\s*(\d+)\s*次/.exec(t);
+    if(tm)return[{code:tm[1],groups:0,times:+tm[2],weeks:0,unit:''}];
+    return[];
+  }
   var top=all.filter(function(a){return a.date===best});
   var s0=Math.min.apply(null,top.map(function(a){return a.seg}));
   top=top.filter(function(a){return a.seg===s0});
@@ -1663,11 +1669,13 @@ function parseLtc(raw){
   var m=t.match(/個案姓名\s*\/\s*身分證字號\s*[：:]\s*([^\s\/]{2,5})\s*\//);if(m)r.name=m[1];
   var ad=t.match(/居住\(通訊\)地址?[ \t]*([^\n]*)/);
   r.addr=ltcAddr(ad&&ad[1])||(function(){var h=t.match(/戶籍地址[ \t]*([^\n]*)/);return ltcAddr(h&&h[1])})()||'';
-  r.phone=ltcPhones(t);
-  m=t.match(/CMS等級\s*第\s*(\d)\s*級/);if(m)r.cms=m[1];
+  var PH=ltcPhones(t);r.phone=PH.phone;r.agent=PH.agent;
+  m=t.match(/CMS\s*等級[^\d第]{0,30}第\s*(\d)\s*級/)||t.match(/第\s*(\d)\s*級[^\n]{0,12}CMS\s*等級/)||t.match(/CMS\s*等級[\s\S]{0,80}?第\s*(\d)\s*級/);
+  if(!m){var ch=t.match(/失能等級由第\s*\d\s*級異動至第\s*(\d)\s*級/);if(ch)m=ch}
+  if(m)r.cms=m[1];
   r.codes=ltcLatestCodes(t,r);
-  m=t.match(/此次評估日期[：:]\s*(\d{3})年(\d{2})月(\d{2})日/)||t.match(/(\d{3})\/(\d{2})\/(\d{2})-[\u4e00-\u9fff]{2,4}/);
-  if(m)r.evalDate=(+m[1]+1911)+'-'+m[2]+'-'+m[3];
+  m=t.match(/此次評估日期\s*[：:]\s*(\d{3})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/)||t.match(/(\d{3})\/(\d{2})\/(\d{2})-[\u4e00-\u9fff]{2,4}/);
+  if(m)r.evalDate=(+m[1]+1911)+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);
   m=t.match(/計畫類型\s*([\u4e00-\u9fff]{2,4})/);if(m)r.planType=m[1];
   // 專業服務目標：內容會夾在標籤文字中間
   m=t.match(/個案或家屬最\s*\n([\s\S]{5,400}?)\n\s*目標\)/);
@@ -1763,7 +1771,7 @@ function renderPdfPv(){
   var r=pdfData;if(!r){$('pdfpv').innerHTML='';return}
   var dup=cases.some(function(c){return(c.name===maskName(r.name||'')||c.name===r.name)&&r.addr&&addrView(r.addr,'full')===c.addr});
   var pc=(r.codes[0]||{}).code||codes[0],L=codes.slice();if(L.indexOf(pc)<0)L.push(pc);
-  var gp=r.codes[0]?r.codes[0].groups*(sizes[pc]||1):6;
+  var c0=r.codes[0],gp=c0?(c0.times||c0.groups*(sizes[pc]||1)):6;
   var cmsO='<option value="">未填</option>';for(var i=1;i<=8;i++)cmsO+='<option value="'+i+'"'+(String(r.cms)===String(i)?' selected':'')+'>第 '+i+' 級</option>';
   $('pdfpv').innerHTML='<div class="card" style="padding:12px;margin-top:10px">'+(dup?'<div class="tag w" style="display:block;white-space:normal;margin-bottom:8px">⚠ 清單裡好像已經有同名同地址的個案，請確認是否重複。</div>':'')+
    '<div class="grid"><div><label>姓名</label><input id="pi_name" value="'+esc(r.name?maskName(r.name):'')+'"></div>'+
@@ -1771,19 +1779,20 @@ function renderPdfPv(){
    '<div><label>住址</label><input id="pi_addr" value="'+esc(addrView(r.addr,'full'))+'"></div>'+
    '<div><label>住址顯示方式</label><select id="pi_am"><option value="full">完整（含門牌）</option><option value="road">到路名（不含門牌）</option><option value="town">只到鄉鎮市</option></select></div>'+
    '<div><label>聯絡電話</label><input id="pi_ph" value="'+esc(r.phone||'')+'"></div>'+
+   '<div><label>代理人電話</label><input id="pi_ag" value="'+esc(r.agent||'')+'"></div>'+
    '<div><label>CMS 等級</label><select id="pi_cms">'+cmsO+'</select></div>'+
    '<div><label>服務代碼'+(r.codes.length>1?'（PDF 內還有其他代碼）':'')+'</label><select id="pi_code">'+L.map(function(k){return '<option'+(k===pc?' selected':'')+'>'+esc(k)+'</option>'}).join('')+'</select></div>'+
-   '<div><label>預計服務次數'+(r.codes[0]?'（'+r.codes[0].groups+' 組'+(r.planDate?'，依 '+r.planDate+' 最新計畫':'')+'）':'')+'</label><input id="pi_pl" type="number" min="1" value="'+gp+'"></div></div>'+
+   '<div><label>預計服務次數'+(r.codes[0]?'（'+(r.codes[0].times?'PDF 寫預計 '+r.codes[0].times+' 次':r.codes[0].groups+' 組')+(r.planDate?'，依 '+r.planDate+' 最新計畫':'')+'）':'')+'</label><input id="pi_pl" type="number" min="1" value="'+gp+'"></div></div>'+
    '<label style="margin-top:8px">專業服務目標</label><textarea id="pi_goal" rows="2">'+esc(r.goal||'')+'</textarea>'+
    (!SHOW_ICF?'':'<label style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--tx);font-size:13px"><input type="checkbox" id="pi_icf" style="width:auto" checked> 同時建立 ICF 架構雛形（在「本週深入研究」可以編輯；包含疾病名稱與功能現況，只存在你的裝置）</label>')+
-   '<div class="note">不會帶入：身分證字號、生日、家屬姓名、評估者與醫院單位名稱。電話含個案、聯絡人、代理人號碼，住址已去除「xx鄰」與郵遞區號。</div>'+
+   '<div class="note">不會帶入：身分證字號、生日、家屬姓名、評估者與醫院單位名稱。聯絡電話放個案與聯絡人號碼，代理人電話另外一欄，住址已去除「xx鄰」與郵遞區號。</div>'+
    '<div class="row" style="margin-top:8px"><button class="p" id="pi_add">✔ 加入個案</button><button id="pi_cancel">取消</button></div></div>';
 }
 $('pdfpv').onchange=function(e){
   var r=pdfData;if(!r)return;
   if(e.target.id==='pi_mask')$('pi_name').value=e.target.value==='full'?(r.name||''):maskName(r.name||'');
   if(e.target.id==='pi_am')$('pi_addr').value=addrView(r.addr,e.target.value);
-  if(e.target.id==='pi_code'){var g=(r.codes.filter(function(x){return x.code===e.target.value})[0]||{}).groups;if(g)$('pi_pl').value=g*(sizes[e.target.value]||1)}
+  if(e.target.id==='pi_code'){var cx=r.codes.filter(function(x){return x.code===e.target.value})[0]||{},g=cx.times||(cx.groups?cx.groups*(sizes[e.target.value]||1):0);if(g)$('pi_pl').value=g}
 };
 $('pdfpv').onclick=function(e){
   if(e.target.id==='pi_cancel'){pdfData=null;renderPdfPv();pdfMsg('');return}
@@ -1791,7 +1800,7 @@ $('pdfpv').onclick=function(e){
   var r=pdfData;if(!r)return;
   var nm=$('pi_name').value.trim();if(!nm){pdfMsg('請填姓名（或遮蔽後的名稱）。');return}
   var gl=$('pi_goal').value.trim();
-  var c={id:uid(),name:nm,addr:$('pi_addr').value.trim(),phone:$('pi_ph').value.trim(),cms:$('pi_cms').value,remark:$('pi_code').value,planned:Math.max(1,parseInt($('pi_pl').value,10)||1),goals:gl?[{id:uid(),text:gl,status:'進行中'}]:[],visits:[]};
+  var c={id:uid(),name:nm,addr:$('pi_addr').value.trim(),phone:$('pi_ph').value.trim(),agent:$('pi_ag').value.trim(),cms:$('pi_cms').value,remark:$('pi_code').value,planned:Math.max(1,parseInt($('pi_pl').value,10)||1),goals:gl?[{id:uid(),text:gl,status:'進行中'}]:[],visits:[]};
   if(SHOW_ICF&&$('pi_icf')&&$('pi_icf').checked){var I=JSON.parse(JSON.stringify(r.icf));if(!I.goal)I.goal=gl;c.icf=I}
   cases.unshift(c);pdfData=null;$('pdfpv').innerHTML='';pdfMsg('');$('pdfBox').open=false;
   save();render();
