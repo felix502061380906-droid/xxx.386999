@@ -412,10 +412,11 @@ function legLine(a,b){
       (saved?'<span class="lgok">✔ 已存</span><button class="s lk" data-lgact="del" data-a="'+a.c.id+'" data-b="'+b.c.id+'">清除</button>':'')+'<button class="s lk" data-lgact="close" data-a="'+a.c.id+'" data-b="'+b.c.id+'">收起</button></div>'}
   return '<div class="lgl'+cls+'">'+h+tools+'</div>'
 }
+function quotaFull(c,date,exId){var q=quotaOf(c);if(!q)return false;var m=date.slice(0,7),u=monthUsed(c,m)+(c.appts||[]).filter(function(x){return x.id!==exId&&x.date.slice(0,7)===m&&x.status!=='missed'&&x.status!=='done'}).length;return u>=q}
 function fastOk(c,exId){
   var t=today(),k,d,busy,last,e,m,r,sv=svMin(),now=new Date(),nm=now.getHours()*60+now.getMinutes();
   for(k=0;k<60;k++){
-    d=addD(t,k);if(naHit(c,d))continue;
+    d=addD(t,k);if(naHit(c,d)||chkGap(c,d,exId,null)||quotaFull(c,d,exId))continue;
     busy=[];cases.forEach(function(q){(q.appts||[]).forEach(function(x){if(x.date===d&&x.id!==exId&&x.status!=='missed'&&!x.other&&x.time)busy.push({c:q,x:x})})});
     last=null;busy.forEach(function(o){if(!last||tmin(o.x.time)>tmin(last.x.time))last=o});
     if(last){m=legMin(last,{c:c}).m;e=tmin(last.x.time)+sv+m;e=Math.ceil(e/5)*5}else e=480;
@@ -428,7 +429,7 @@ function fastOk(c,exId){
 function fastTag(c,exId){
   var f=fastOk(c,exId);if(!f)return '';
   var dd=pd(f.d);
-  return '<span class="tag o" style="flex:none" title="避開個案不行的日子，並接在當天最後一位之後（含車程）">⭐ 最快可約 '+(f.d===today()?'今天':'週'+WD[dd.getDay()]+' '+fmtD(f.d))+' '+f.t+' 起</span>'
+  return '<span class="tag o" style="flex:none" title="避開個案不行的日子、要和上次／下次服務隔夠天數、不超過每月上限，並接在當天最後一位之後（含車程）">⭐ 最快可約 '+(f.d===today()?'今天':'週'+WD[dd.getDay()]+' '+fmtD(f.d))+' '+f.t+' 起</span>'
 }
 function apRow(o,t){
   var c=o.c,x=o.x,st=x.status||'pending',id='data-id="'+c.id+'" data-a="'+x.id+'"',gm=chkGap(c,x.date,x.id,x.vid),badge='',acts='';
@@ -1356,6 +1357,8 @@ function freUpd(c,exId){
     S.forEach(function(o){if(tmin(o.x.time)==null){nt++;return}if(!last||tmin(o.x.time)>tmin(last.x.time))last=o});
     var txt,k='ok';
     if(c&&naHit(c,d)){txt='✖ '+naHit(c,d);k='bad'}
+    else if(c&&chkGap(c,d,exId,null)){txt='✖ 離上次／下次太近';k='bad'}
+    else if(c&&quotaFull(c,d,exId)){txt='✖ 當月已達上限';k='bad'}
     else if(!last){txt=nt?'✔ 有約未填時間':'✔ 整天有空'}
     else{var m=c?legMin(last,{c:c}).m:0,e=tmin(last.x.time)+svMin()+m;txt='✔ '+pad2(Math.floor(e/60)%24)+':'+pad2(e%60)+' 後可接'+(c?'（含車程 '+m+' 分）':'')}
     if(c&&k==='ok'&&!star){star=true;txt='⭐最快 '+txt.slice(2);el.classList.add('first')}
