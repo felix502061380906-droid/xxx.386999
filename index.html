@@ -224,6 +224,13 @@ a.lgb{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;min-height
 input.lgi{width:68px;padding:5px 8px;font-size:13px;text-align:center;border-radius:8px}
 .lgok{font-size:12px;color:var(--ok);font-weight:600}
 .lgn{font-size:12px;color:var(--mut)}
+.ctrow{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;background:var(--card)}
+.ctck{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;margin:0;cursor:pointer}
+.ctck input{width:20px;height:20px;margin:0;flex:none}
+.ctd{padding-left:28px}
+.ctd{font-size:12.5px;color:var(--mut);margin-top:4px;line-height:1.5;word-break:break-all}
+.ctd b{color:var(--tx)}.ctd s{opacity:.7}
+.ctl{display:inline-block;min-width:54px;font-weight:600;color:var(--tx)}
 .dst .cfw{color:var(--warn)}.dst .cfok{color:var(--ok)}
 .apc.miss{border-left-color:var(--warn)}
 .apc.oth{border-left-color:var(--mut)}
@@ -367,6 +374,7 @@ body.dragging-now{user-select:none;-webkit-user-select:none;cursor:grabbing}
 </div></details>
 
 <details id="pdfBox" class="t-case" style="margin-top:8px"><summary><span class="nm" style="font-size:15px">📄 從 PDF 匯入新個案</span></summary><div class="body"><div class="addr" style="margin:0 0 8px">選擇照管系統匯出的「照顧管理評估量表與照顧計畫」PDF。檔案只在你的裝置上讀取，不會上傳。身分證字號、生日、家屬與照顧者的姓名電話、評估者與醫院名稱，都不會帶入。</div><input type="file" id="pdfin" accept="application/pdf,.pdf"><div class="note" id="pdfmsg"></div><div id="pdfpv"></div></div></details>
+<details id="ctBox" class="t-case" style="margin-top:8px"><summary><span class="nm" style="font-size:15px">📇 匯入聯絡資料（電話／地址／CMS）</span></summary><div class="body"><div class="addr" style="margin:0 0 8px">選擇「個案聯絡資料.json」。只更新「未結案」且姓名對得上的個案，已結案的會略過；套用前會先列出變更，讓你勾選確認。檔案只在你的裝置上讀取，不會上傳。</div><input type="file" id="ctin" accept=".json,application/json"><div class="note" id="ctmsg"></div><div id="ctpv"></div></div></details>
 <div class="row t-case" style="margin-bottom:10px">
   <div style="flex:1;min-width:160px"><label>搜尋</label><input id="q" placeholder="姓名、住址或備註"></div>
   <div><label>篩選</label><select id="f"><option value="all">全部</option><option value="nokey">有未申報的服務</option><option value="open">尚未服務完</option><option value="active">服務中</option><option value="paused">暫停中</option><option value="unclosed" selected>未結案</option><option value="closed">已結案</option></select></div>
@@ -1744,6 +1752,42 @@ $('pdfpv').onclick=function(e){
   save();render();
   showToast('✔ 已加入個案「'+esc(nm)+'」'+(c.icf?'，並建立 ICF 架構雛形（在「本週深入研究」可以編輯）':''));
 };
+
+var ctPlan=[];
+function ctNear(a,b){if(a===b)return 1;if(a.length!==b.length||a.length<2)return 0;var d=0,i;for(i=0;i<a.length;i++)if(a[i]!==b[i])d++;return d===1?2:0}
+var CTF=[['phone','電話'],['addr','地址'],['cms','CMS 等級']];
+$('ctin').addEventListener('change',function(){
+  var f=this.files&&this.files[0],msg=$('ctmsg'),pv=$('ctpv');if(!f)return;
+  var rd=new FileReader();
+  rd.onerror=function(){msg.textContent='讀取檔案失敗'};
+  rd.onload=function(){
+    var L;try{var j=JSON.parse(rd.result);L=j.cases||j;if(!Array.isArray(L))throw 0}catch(e){msg.textContent='這不是正確的聯絡資料檔';pv.innerHTML='';return}
+    ctPlan=[];var skipC=[],miss=[],same=0;
+    L.forEach(function(it){
+      if(!it||!it.name)return;
+      var live=cases.filter(function(c){return!c.closed&&ctNear(c.name,it.name)}).sort(function(a,b){return ctNear(a.name,it.name)-ctNear(b.name,it.name)})[0];
+      if(!live){var cl=cases.filter(function(c){return c.closed&&ctNear(c.name,it.name)})[0];(cl?skipC:miss).push(it.name);return}
+      var ch=[];CTF.forEach(function(k){var nv=it[k[0]]==null?'':String(it[k[0]]).trim();if(nv&&String(live[k[0]]||'')!==nv)ch.push({k:k[0],l:k[1],o:String(live[k[0]]||''),n:nv})});
+      if(!ch.length){same++;return}
+      ctPlan.push({c:live,ch:ch,fz:ctNear(live.name,it.name)===2,nm:it.name});
+    });
+    var h='';
+    ctPlan.forEach(function(p,i){
+      h+='<div class="ctrow"><label class="ctck"><input type="checkbox" id="ctc_'+i+'" checked> <b>'+esc(p.c.name)+'</b>'+(p.fz?' <span class="tag w">檔案裡是「'+esc(p.nm)+'」，請確認是同一人</span>':'')+'</label>'+
+        p.ch.map(function(x){return '<div class="ctd"><span class="ctl">'+x.l+'</span>'+(x.o?'<s>'+esc(x.o)+'</s> → ':'<i>（空白）→ </i>')+'<b>'+esc(x.n)+'</b></div>'}).join('')+'</div>'
+    });
+    msg.textContent=(ctPlan.length?'找到 '+ctPlan.length+' 位有變更':'沒有需要更新的資料')+(same?'・'+same+' 位已是最新':'')+(skipC.length?'・略過已結案 '+skipC.length+' 位':'')+(miss.length?'・找不到：'+miss.join('、'):'');
+    pv.innerHTML=h+(ctPlan.length?'<div class="row" style="margin-top:10px"><button class="p" id="ctgo">✔ 套用勾選的變更</button></div>':'');
+    this.value='';
+  }.bind(this);
+  rd.readAsText(f,'utf-8');
+});
+$('ctpv').addEventListener('click',function(e){
+  if(!e.target||e.target.id!=='ctgo')return;
+  var n=0;
+  ctPlan.forEach(function(p,i){var ck=$('ctc_'+i);if(ck&&ck.checked){p.ch.forEach(function(x){p.c[x.k]=x.n});n++}});
+  save();render();ctPlan=[];$('ctpv').innerHTML='';$('ctmsg').textContent='✔ 已更新 '+n+' 位個案的聯絡資料';showToast('✔ 已更新 '+n+' 位')
+});
 $('pdfin').onchange=function(e){
   var f=e.target.files[0];if(!f)return;pdfMsg('讀取中…');
   pdfLines(f).then(function(txt){
