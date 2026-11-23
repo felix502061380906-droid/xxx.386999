@@ -329,7 +329,7 @@ body.dragging-now{user-select:none;-webkit-user-select:none;cursor:grabbing}
 
 <div class="stats" id="stats"></div>
 <div class="t-todo"><div class="card" style="padding:12px"><div class="row" style="align-items:end"><div style="flex:1;min-width:200px"><label>新增待辦</label><input id="tdt" placeholder="例：回覆家屬、補登申報…（按 Enter 會先跟你確認）"></div><button class="p" id="tda">＋ 加入</button></div><div class="row" style="margin-top:8px;align-items:center" id="tdq"><button class="s" data-q="0">今天</button><button class="s" data-q="1">明天</button><button class="s" data-q="7">下週</button><input type="date" id="tdd" style="width:auto" title="到期日（可不填）"><select id="tdc" style="width:auto;max-width:150px"></select><label style="display:inline-flex;gap:4px;align-items:center;font-size:13px;color:var(--tx);margin:0"><input type="checkbox" id="tds" style="width:auto">⭐ 重要</label></div></div><div id="tdcf"></div><div id="tdl"></div></div>
-<div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button><span class="addr" style="margin:0 0 0 auto">每次服務約 <input id="svm" type="number" min="10" step="5" style="width:64px;display:inline-block;padding:4px 6px"> 分鐘（用來檢查車程夠不夠）</span></div><div class="t-week card" id="fcTrig" style="padding:12px;margin-bottom:12px;cursor:pointer"><div class="row" style="align-items:center"><b>🔎 本週深入研究</b><span class="addr" id="fcsum" style="margin:0;flex:1;min-width:120px"></span><button class="s p" id="fcopen">開啟 ▸</button></div></div>
+<div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="t-week card" id="fcTrig" style="padding:12px;margin-bottom:12px;cursor:pointer"><div class="row" style="align-items:center"><b>🔎 本週深入研究</b><span class="addr" id="fcsum" style="margin:0;flex:1;min-width:120px"></span><button class="s p" id="fcopen">開啟 ▸</button></div></div>
 <div class="stats" id="wsum"></div><div id="wbody"></div></div>
 <details id="nokeyBox" class="t-stat" open><summary><span class="nm">⏳ 尚未 Key 申報清單</span><span class="tag">勾選即視為已 Key</span></summary><div class="body"><div id="nkl"></div></div></details>
 <details id="mqBox" class="t-stat" open><summary><span class="nm">📊 當月額度（已執行次數）</span></summary><div class="body"><div class="row"><div><label>月份</label><input type="month" id="mqm" placeholder="2026-11"></div></div><div id="mqtab" style="margin-top:10px"></div><div class="gh" style="margin-top:14px">各代碼每月上限（空白＝不限）</div><div id="cmq" class="row"></div><div class="note">CA07 一組 3 次，每月上限預設 3 次；有些個案額度只有 2 次，可到個案卡片展開後，在「每月上限」單獨設定。CB04 一組 6 次，預設不限。已執行次數＝已登記的服務（含他人服務），不含只是預約的。</div></div></details>
@@ -403,7 +403,7 @@ var tvals={};
 var SHOW_ICF=false; /* ICF 架構：false=隱藏（資料與程式保留，改成 true 即恢復） */
 var KEY="ltc_cases_v1",cases=[];
 var WD=["日","一","二","三","四","五","六"];
-function svMin(){var v=0;try{v=parseInt(localStorage.getItem('ltc_svm'),10)}catch(e){}return v>0?v:50}
+function svMin(){return 50}
 function legLine(a,b){
   var r=leg({id:a.c.id,cen:tcen(a.c.addr)},{id:b.c.id,cen:tcen(b.c.addr)}),sv=svMin(),est=r.s==='s'?'':'（估）',ta=tmin(a.x.time),tb=tmin(b.x.time),h='🛵 車程 '+r.m+' 分'+est,cls='';
   if(ta!=null&&tb!=null){var gap=tb-ta,need=sv+r.m;
@@ -887,12 +887,12 @@ function renderWeek(){
   $('wlabel').textContent=(wOff===0?'本週　':wOff<0?(-wOff)+' 週前　':wOff+' 週後　')+fmtD(a)+' ～ '+fmtD(b);
   var inW=function(d){return d>=a&&d<=b};
   var act=sortedCases().filter(function(c){if(c.paused)return false;if(!c.closed)return true;return (c.appts||[]).some(function(x){return inW(x.date)})||c.visits.some(function(v){return!v.other&&inW(v.date)})});
-  var booked={},nb=0,rep=0,sv=0,svV=0,doneL=[],none=[],skipL=[],pendL=[],oth=0;
+  var booked={},nb=0,rep=0,unc=0,sv=0,svV=0,doneL=[],none=[],skipL=[],pendL=[],oth=0;
   act.forEach(function(c){
     if((c.skips||[]).indexOf(a)>=0){skipL.push(c);return}
     var ap=(c.appts||[]).filter(function(x){return inW(x.date)});
     var vv=sorted(c).filter(function(v){return!v.other&&inW(v.date)});
-    ap.forEach(function(x){(booked[x.date]=booked[x.date]||[]).push({c:c,x:x,n:vv.length});if(x.date<t&&(!x.status||x.status==='pending'))rep++});
+    ap.forEach(function(x){(booked[x.date]=booked[x.date]||[]).push({c:c,x:x,n:vv.length});if(x.date<t&&(!x.status||x.status==='pending'))rep++;if(!x.other&&!x.cf&&(!x.status||x.status==='pending'))unc++});
     var live=ap.filter(function(x){return x.status!=='missed'}),liveMine=live.filter(function(x){return!x.other});
     if(live.length&&!liveMine.length)oth++;
     if(c.pendNew&&(ap.length||c.visits.length))delete c.pendNew;
@@ -905,7 +905,7 @@ function renderWeek(){
   });
   var sinceOf=function(c){var vs=sorted(c);return vs.length?diff(vs[vs.length-1].date,t):9999};
   none.sort(function(x,y){if(wsort==='zone'){var zx=zoneIdx(x),zy=zoneIdx(y);if(zx!==zy)return zx-zy}var ex=earliestOk(x),ey=earliestOk(y);return ex<ey?-1:ex>ey?1:sinceOf(y)-sinceOf(x)});
-  $('wsum').innerHTML='<div class="stat"><b>'+nb+'</b><span>本週有約</span></div><div class="stat'+(sv?' ok':'')+'"><b>'+sv+'</b><span>本週已服務（'+svV+' 人次）</span></div><div class="stat'+(none.length?' warn':'')+'"><b>'+none.length+'</b><span>本週沒約</span></div><div class="stat"><b>'+skipL.length+'</b><span>本週暫停</span></div><div class="stat'+(rep?' warn':'')+'"><b>'+rep+'</b><span>待回報（日期已過）</span></div>';
+  $('wsum').innerHTML='<div class="stat"><b>'+nb+'</b><span>本週有約</span></div><div class="stat'+(sv?' ok':'')+'"><b>'+sv+'</b><span>本週已服務（'+svV+' 人次）</span></div><div class="stat'+(none.length?' warn':'')+'"><b>'+none.length+'</b><span>本週沒約</span></div><div class="stat"><b>'+skipL.length+'</b><span>本週暫停</span></div><div class="stat'+(unc?' warn':'')+'"><b>'+unc+'</b><span>家屬未確認</span></div>';
   var anyOrd=days.some(function(d){return(booked[d]||[]).some(function(o){return o.x.ord!=null})}),h='<div class="wtb"><span class="gh" style="font-size:14px;margin:0">📌 本週有約</span><span class="wtbr">'+(wUnlock&&anyOrd?'<button class="s" data-dact="resetall">↺ 全部依時間排</button>':'')+'<button class="lockb'+(wUnlock?' on':'')+'" data-dact="lock">'+(wUnlock?'🔓 編輯中・按此鎖定':'🔒 已鎖定・按此編輯')+'</button></span></div>'+(wUnlock?'<div class="wtip">✋ 編輯模式：長按卡片或抓 ⠿ 拖曳可換順序、搬到其他天；車程列可用 Google 查分鐘數並存起來。完成記得鎖定。</div>':'');
   days.forEach(function(d){
     var L=booked[d]||[],dd=pd(d),pv=null,S=L.slice().sort(ordCmp);
@@ -1317,8 +1317,6 @@ function earliestOk(c){
 function zq(c){var t=xtown(c.addr);if(!t||t==='未分類')return '<span class="zq" style="color:var(--mut)">？</span>';return '<span class="zq">'+esc(t.replace(/[鄉鎮市區]$/,''))+'</span>'}
 function zoneIdx(c){var i=XT.indexOf(xtown(c.addr));return i<0?99:i}
 var wsort='ear';try{wsort=localStorage.getItem('ltc_wsort')||'ear'}catch(e){}
-try{$('svm').value=svMin()}catch(e){}
-$('svm').onchange=function(){try{localStorage.setItem('ltc_svm',this.value)}catch(e){}renderWeek()};
 
 document.addEventListener('click',function(e){[].forEach.call(document.querySelectorAll('details.apmn[open]'),function(d){if(!d.contains(e.target))d.removeAttribute('open')})});
 var TP={mode:'',id:'',a:'',range:true},tpH=$('tph'),tpM=$('tpm');
