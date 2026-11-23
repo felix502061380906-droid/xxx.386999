@@ -274,7 +274,7 @@ details.plain>summary{padding:8px 0}
 #wbody:not(.wun) .apc.pend .tpb{border-color:var(--line);color:var(--tx);font-weight:600}
 #wbody:not(.wun) .apc.unc .tpb{border-style:dashed}
 #wbody:not(.wun) .cfp{background:transparent;padding:0;font-weight:500;font-size:12px}
-#wbody:not(.wun) .cfp.w{color:var(--mut)}
+#wbody:not(.wun) .cfp.w{color:#9a6200}
 #wbody:not(.wun) .cfp.ok{color:var(--ok)}
 #wbody:not(.wun) button.cfb{background:var(--card)!important;color:var(--tx)!important;border-color:var(--line)!important;font-weight:500}
 #wbody:not(.wun) .lgl.ok{border-left-color:var(--line)}
@@ -439,8 +439,8 @@ function apRow(o,t){
   var hints=prefCmp(c,x)+(gm?'<span class="tag w">⚠ '+esc(gm)+'</span>':'');
   if(st==='done'){var v0=c.visits.filter(function(v){return v.id===x.vid})[0];acts=recBtn(c,x.vid)+(v0&&v0.keyed?'<span class="addr" style="margin:0;font-size:12px">已 Key 申報，無法直接改回</span>':'<button class="s lk" data-act="wundone" '+id+'>↩ 改回未服務</button>')}
   else if(st==='missed')acts='<button class="s" data-act="wdone" '+id+'>改為已服務</button><button class="s lk" data-act="wunmiss" '+id+'>恢復待服務</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button>';
-  else acts=(x.cf?'':'<button class="s cfb" data-act="wcf" '+id+'>📞 已和家屬確認</button>')+'<button class="s p" data-act="wdone" '+id+'>✔ 已服務</button><details class="apmn"><summary title="更多">⋯</summary><div class="apmb">'+(x.cf?'<button class="s lk" data-act="wcf" '+id+'>↩ 改回待確認</button>':'')+'<button class="s lk" data-act="wmiss" '+id+'>✖ 沒服務到</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button></div></details>';
-  return '<div class="apc '+(st==='done'?'done':st==='missed'?'miss':'pend'+(x.cf?'':' unc'))+'" data-ap="'+x.id+'" data-cid="'+c.id+'"'+(x.cf&&st==='pending'?' data-cf="1"':'')+'><div class="ap1">'+(x.cf&&st==='pending'?'<span class="dh lkd" title="已和家屬確認，不能拖曳">🔒</span>':'<span class="dh" title="按住拖曳調整順序">⠿</span>')+timeBox(c,x)+zq(c)+'<b>'+esc(c.name)+'</b>'+(c.closed?'<span class="tag" style="flex:none">已結案</span>':'')+(st==='pending'?'<span class="cfp '+(x.cf?'ok':'w')+'">'+(x.cf?'✔ 已確認':'⏳ 待確認')+'</span>':'')+'<span class="apsp"></span>'+badge+'</div>'+(st==='pending'?'<div class="ap2 apinfo">'+fastTag(c,x.id)+prefTag(c)+'</div>':'')+(hints?'<div class="ap2">'+hints+'</div>':'')+'<div class="ap3">'+acts+'</div>'+(wmiss[x.id]?'<div style="font-size:13px;margin-top:8px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" '+id+' data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" '+id+'>返回</button></div>':'')+'</div>'
+  else acts=(x.cf?'':'<button class="s cfb" data-act="wcf" '+id+'>☐ 標記：家屬已確認</button>')+'<button class="s p" data-act="wdone" '+id+'>✔ 已服務</button><details class="apmn"><summary title="更多">⋯</summary><div class="apmb">'+(x.cf?'<button class="s lk" data-act="wcf" '+id+'>↩ 改回「尚未確認」</button>':'')+'<button class="s lk" data-act="wmiss" '+id+'>✖ 沒服務到</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button></div></details>';
+  return '<div class="apc '+(st==='done'?'done':st==='missed'?'miss':'pend'+(x.cf?'':' unc'))+'" data-ap="'+x.id+'" data-cid="'+c.id+'"'+(x.cf&&st==='pending'?' data-cf="1"':'')+'><div class="ap1">'+(x.cf&&st==='pending'?'<span class="dh lkd" title="家屬已確認，不能拖曳">🔒</span>':'<span class="dh" title="按住拖曳調整順序">⠿</span>')+timeBox(c,x)+zq(c)+'<b>'+esc(c.name)+'</b>'+(c.closed?'<span class="tag" style="flex:none">已結案</span>':'')+(st==='pending'?'<span class="cfp '+(x.cf?'ok':'w')+'">'+(x.cf?'✔ 家屬已確認':'⏳ 尚未跟家屬確認')+'</span>':'')+'<span class="apsp"></span>'+badge+'</div>'+(st==='pending'?'<div class="ap2 apinfo">'+fastTag(c,x.id)+prefTag(c)+'</div>':'')+(hints?'<div class="ap2">'+hints+'</div>':'')+'<div class="ap3">'+acts+'</div>'+(wmiss[x.id]?'<div style="font-size:13px;margin-top:8px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" '+id+' data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" '+id+'>返回</button></div>':'')+'</div>'
 }
 function tmin(t){var a=(t||'').split(':');return a.length<2?null:(+a[0])*60+(+a[1])}
 var tUndo=null,dayCache={},DR=null,wUnlock=false,lgOpen={};
@@ -475,13 +475,13 @@ function daySum(d,S){
   var act=actList(S),n=act.length,tot=totTravel(act),hasOrd=S.some(function(o){return o.x.ord!=null});
   var sv=svMin(),t0=act.length?tmin(act[0].x.time):null,h='<div class="dsum"><div class="dst"><span>🛵 車程 <b>'+tot+'</b> 分</span><span>👥 <b>'+n+'</b> 次</span>';
   var pend=act.filter(function(o){return o.x.status!=='done'}),cfN=pend.filter(function(o){return o.x.cf}).length;
-  if(pend.length)h+='<span class="'+(cfN===pend.length?'cfok':'cfw')+'">'+(cfN===pend.length?'✔ 全部已確認':'⏳ 已確認 <b>'+cfN+'</b>/'+pend.length)+'</span>';
+  if(pend.length)h+='<span class="'+(cfN===pend.length?'cfok':'cfw')+'">'+(cfN===pend.length?'✔ 家屬全部已確認':'⏳ 家屬已確認 <b>'+cfN+'</b>/'+pend.length)+'</span>';
   if(t0!=null){var fin=t0+n*sv+tot;h+='<span>🕗 '+act[0].x.time+' → <b>'+pad2(Math.floor(fin/60)%24)+':'+pad2(fin%60)+'</b></span>'}
   h+='</div>';
   if(wUnlock){
     h+='<div class="dsb"><button class="s p" data-dact="best" data-d="'+d+'">✨ 最佳順序</button>';
     if(n>=2&&t0!=null)h+='<button class="s" data-dact="auto" data-d="'+d+'">⏱ 順序排時間</button>';
-    if(pend.length&&cfN<pend.length)h+='<button class="s" data-dact="allcf" data-d="'+d+'">📞 全部標為已確認</button>';
+    if(pend.length&&cfN<pend.length)h+='<button class="s" data-dact="allcf" data-d="'+d+'">☐ 全部標記：家屬已確認</button>';
     if(hasOrd)h+='<button class="s lk" data-dact="reset" data-d="'+d+'">↺ 依時間排</button>';
     if(oUndo&&oUndo.d===d)h+='<button class="s lk" data-dact="oundo" data-d="'+d+'">↩ 復原順序</button>';
     if(tUndo&&tUndo.d===d)h+='<button class="s lk" data-dact="undo" data-d="'+d+'">↩ 復原時間</button>';
@@ -1488,7 +1488,7 @@ $('wbody').addEventListener('click',function(e){
     var after=totTravel(hd.concat(actList(NS)));save();render();
     showToast((fromHome?'🏠 從預設出發地起算　':sa?'':'未設定預設出發地，起點不固定　')+(after<before?'✨ 已排成最短車程：'+before+' → '+after+' 分（省 '+(before-after)+' 分）':'✨ 目前順序已是最短車程（'+after+' 分）'));return}
   if(act==='oundo'){if(oUndo&&oUndo.d===d){oUndo.snap.forEach(function(q){if(q[1]==null)delete q[0].ord;else q[0].ord=q[1]});oUndo=null;save();render()}return}
-  if(act==='allcf'){S.forEach(function(o){if(!o.x.other&&o.x.status!=='done'&&o.x.status!=='missed')o.x.cf=true});save();render();showToast('已把這天全部標為已和家屬確認');return}
+  if(act==='allcf'){S.forEach(function(o){if(!o.x.other&&o.x.status!=='done'&&o.x.status!=='missed')o.x.cf=true});save();render();showToast('已把這天全部標為家屬已確認');return}
   if(act==='resetall'){var n=0;[].forEach.call($('wbody').querySelectorAll('.dl'),function(l){var k=l.getAttribute('data-d');(dayCache[k]||[]).forEach(function(o){if(o.x.ord!=null){delete o.x.ord;n++}})});save();render();showToast('已把本週所有天依預約時間重新排列');return}
   if(act==='reset'){S.forEach(function(o){delete o.x.ord});save();render();return}
   if(act==='undo'){if(tUndo&&tUndo.d===d){tUndo.chg.forEach(function(q){if(q[1])q[0].time=q[1];else delete q[0].time});tUndo=null;save();render()}return}
