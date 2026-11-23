@@ -140,7 +140,7 @@ details[data-id]>summary .ch .nm{flex-basis:auto}
 .tg{font-size:11.5px;padding:2px 9px;border-radius:99px;background:var(--bg);color:var(--mut);white-space:nowrap}
 .tg.w{background:var(--warnBg);color:var(--warn)}
 @media(min-width:760px){
-#list{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+body[data-tab="case"] #list{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
 #list>*{grid-column:1/-1}
 #list>details[data-id]{grid-column:auto;margin-bottom:0}
 #list>details[data-id][open]{grid-column:1/-1}
@@ -269,6 +269,21 @@ details.plain>summary{padding:8px 0}
 .dh{display:none;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;font-size:20px;line-height:1;color:var(--mut);padding:8px 6px;margin:-8px 0 -8px -6px;flex:none}
 .dl:has(.ph) .emp{display:none}
 #wbody.wun .dh{display:inline-block}
+/* 鎖定（平常檢視）時：降低色彩，只保留有意義的警示 */
+#wbody:not(.wun) .apc.pend,#wbody:not(.wun) .apc.unc{border-left-color:var(--line);background:var(--card)}
+#wbody:not(.wun) .apc.pend .tpb{border-color:var(--line);color:var(--tx);font-weight:600}
+#wbody:not(.wun) .apc.unc .tpb{border-style:dashed}
+#wbody:not(.wun) .cfp{background:transparent;padding:0;font-weight:500;font-size:12px}
+#wbody:not(.wun) .cfp.w{color:var(--mut)}
+#wbody:not(.wun) .cfp.ok{color:var(--ok)}
+#wbody:not(.wun) button.cfb{background:var(--card)!important;color:var(--tx)!important;border-color:var(--line)!important;font-weight:500}
+#wbody:not(.wun) .lgl.ok{border-left-color:var(--line)}
+#wbody:not(.wun) .ap2 .tag.o{background:transparent;color:var(--ok);padding:0}
+#wbody:not(.wun) .dst .cfw{color:var(--mut)}
+#wbody:not(.wun) .dst .cfok{color:var(--mut)}
+
+#wbody.wun .dh.lkd{cursor:default;touch-action:auto;font-size:15px;opacity:.55}
+#wbody.wun .apc[data-cf]{cursor:default}
 .apinfo{display:none!important}
 #wbody.wun .apinfo{display:flex!important}
 #wbody.wun .dl .apc{cursor:grab}
@@ -424,7 +439,7 @@ function apRow(o,t){
   if(st==='done'){var v0=c.visits.filter(function(v){return v.id===x.vid})[0];acts=recBtn(c,x.vid)+(v0&&v0.keyed?'<span class="addr" style="margin:0;font-size:12px">已 Key 申報，無法直接改回</span>':'<button class="s lk" data-act="wundone" '+id+'>↩ 改回未服務</button>')}
   else if(st==='missed')acts='<button class="s" data-act="wdone" '+id+'>改為已服務</button><button class="s lk" data-act="wunmiss" '+id+'>恢復待服務</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button>';
   else acts=(x.cf?'':'<button class="s cfb" data-act="wcf" '+id+'>📞 已和家屬確認</button>')+'<button class="s p" data-act="wdone" '+id+'>✔ 已服務</button><details class="apmn"><summary title="更多">⋯</summary><div class="apmb">'+(x.cf?'<button class="s lk" data-act="wcf" '+id+'>↩ 改回待確認</button>':'')+'<button class="s lk" data-act="wmiss" '+id+'>✖ 沒服務到</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button></div></details>';
-  return '<div class="apc '+(st==='done'?'done':st==='missed'?'miss':'pend'+(x.cf?'':' unc'))+'" data-ap="'+x.id+'" data-cid="'+c.id+'"><div class="ap1"><span class="dh" title="按住拖曳調整順序">⠿</span>'+timeBox(c,x)+zq(c)+'<b>'+esc(c.name)+'</b>'+(c.closed?'<span class="tag" style="flex:none">已結案</span>':'')+(st==='pending'?'<span class="cfp '+(x.cf?'ok':'w')+'">'+(x.cf?'✔ 已確認':'⏳ 待確認')+'</span>':'')+'<span class="apsp"></span>'+badge+'</div>'+(st==='pending'?'<div class="ap2 apinfo">'+fastTag(c,x.id)+prefTag(c)+'</div>':'')+(hints?'<div class="ap2">'+hints+'</div>':'')+'<div class="ap3">'+acts+'</div>'+(wmiss[x.id]?'<div style="font-size:13px;margin-top:8px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" '+id+' data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" '+id+'>返回</button></div>':'')+'</div>'
+  return '<div class="apc '+(st==='done'?'done':st==='missed'?'miss':'pend'+(x.cf?'':' unc'))+'" data-ap="'+x.id+'" data-cid="'+c.id+'"'+(x.cf&&st==='pending'?' data-cf="1"':'')+'><div class="ap1">'+(x.cf&&st==='pending'?'<span class="dh lkd" title="已和家屬確認，不能拖曳">🔒</span>':'<span class="dh" title="按住拖曳調整順序">⠿</span>')+timeBox(c,x)+zq(c)+'<b>'+esc(c.name)+'</b>'+(c.closed?'<span class="tag" style="flex:none">已結案</span>':'')+(st==='pending'?'<span class="cfp '+(x.cf?'ok':'w')+'">'+(x.cf?'✔ 已確認':'⏳ 待確認')+'</span>':'')+'<span class="apsp"></span>'+badge+'</div>'+(st==='pending'?'<div class="ap2 apinfo">'+fastTag(c,x.id)+prefTag(c)+'</div>':'')+(hints?'<div class="ap2">'+hints+'</div>':'')+'<div class="ap3">'+acts+'</div>'+(wmiss[x.id]?'<div style="font-size:13px;margin-top:8px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" '+id+' data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" '+id+'>返回</button></div>':'')+'</div>'
 }
 function tmin(t){var a=(t||'').split(':');return a.length<2?null:(+a[0])*60+(+a[1])}
 var tUndo=null,dayCache={},DR=null,wUnlock=false,lgOpen={};
@@ -1403,6 +1418,7 @@ $('wbody').addEventListener('pointerdown',function(e){
   if(!wUnlock||DR||(e.pointerType==='mouse'&&e.button!==0))return;
   var t=e.target,h=t.closest&&t.closest('.dh'),card=t.closest&&t.closest('.apc'),list=card&&card.parentNode;
   if(!list||!list.classList.contains('dl'))return;
+  if(card.hasAttribute('data-cf'))return;
   if(!h&&t.closest(DRAG_SKIP))return;
   DR={card:card,list:list,pid:e.pointerId,sx:e.clientX,sy:e.clientY,lastY:e.clientY,lastX:e.clientX,type:e.pointerType,started:false,moved:false};
   if(h){e.preventDefault();drStart()}
@@ -1457,7 +1473,7 @@ $('wbody').addEventListener('click',function(e){
   if(act==='lock'){wUnlock=!wUnlock;lgOpen={};render();showToast(wUnlock?'🔓 已進入編輯模式':'🔒 已鎖定，不會誤拖或誤改');return}
   if(act==='best'){
     var P=[],slots=[],anchor=null,i2;
-    S.forEach(function(o,i){if(!o.x.other&&o.x.status!=='done'&&o.x.status!=='missed'){P.push(o);slots.push(i)}});
+    S.forEach(function(o,i){if(!o.x.other&&o.x.status!=='done'&&o.x.status!=='missed'&&!o.x.cf){P.push(o);slots.push(i)}});
     if(P.length<2){showToast('這天可排序的預約不足兩位');return}
     if(slots[0]>0){var pv=S[slots[0]-1];if(!pv.x.other)anchor=pv}
     var sa=(pdefGet()||(function(){try{return localStorage.getItem('ltc_pstart')||''}catch(e){return ''}})()).trim(),fromHome=false;
@@ -1479,7 +1495,7 @@ $('wbody').addEventListener('click',function(e){
     var chg=[],i,m,nx,tt;
     for(i=1;i<A.length;i++){
       m=legMin(A[i-1],A[i]).m;nx=Math.ceil((cur+svMin()+m)/5)*5;
-      if(A[i].x.status==='done'){tt=tmin(A[i].x.time);cur=tt!=null?tt:nx;continue}
+      if(A[i].x.status==='done'||A[i].x.cf){tt=tmin(A[i].x.time);cur=tt!=null?tt:nx;continue}
       chg.push([A[i].x,A[i].x.time||'']);A[i].x.time=pad2(Math.floor(nx/60)%24)+':'+pad2(nx%60);cur=nx;
     }
     tUndo={d:d,chg:chg};save();render();showToast('已依順序排好時間（每次服務 '+svMin()+' 分＋車程），不滿意可按「復原時間」')
