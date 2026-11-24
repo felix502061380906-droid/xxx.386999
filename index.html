@@ -240,6 +240,9 @@ input.lgi{width:68px;padding:5px 8px;font-size:13px;text-align:center;border-rad
 .ap2{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .ap3{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}
 details.apmn{position:relative;display:inline-block;margin:0;border:none;background:transparent}
+#cdlg #list.t-case{display:block!important}
+#cdlg #list>details,#cdlg #list>.card{margin-top:0}
+.lkn{cursor:pointer;text-decoration:underline dotted;text-underline-offset:4px;text-decoration-color:var(--mut)}
 .apmn>summary{display:inline-block;padding:3px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:16px;line-height:1.3;cursor:pointer}
 .apmn>summary::after{content:none!important;display:none!important}
 .apmb{position:absolute;left:0;top:100%;margin-top:4px;z-index:5;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.2);padding:4px;display:flex;flex-direction:column;min-width:128px}
@@ -385,6 +388,7 @@ body.dragging-now{user-select:none;-webkit-user-select:none;cursor:grabbing}
 
 <div class="note t-case" id="rsum" style="margin:-2px 0 10px"></div>
 <div id="list" class="t-case"></div>
+<div id="cdlg" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);overflow:auto;-webkit-overflow-scrolling:touch"><div id="cbox" style="max-width:600px;margin:20px auto;padding:0 12px 40px"><div style="text-align:right;margin-bottom:8px"><button class="s" id="cdx" style="background:var(--card)">✕ 關閉（也可以點空白處）</button></div></div></div>
 
 <div class="row" style="margin-top:14px;align-items:center"><div class="note" id="bkMsg" style="margin:0"></div><button class="s p" id="bkOk" style="display:none">確定取代</button></div>
 <details id="bakBox" style="margin-top:8px"><summary><span class="nm" style="font-size:14px">💾 資料備份與還原</span></summary><div class="body"><div class="row" style="margin-top:0">
@@ -439,6 +443,19 @@ function fastTag(c,exId){
   var dd=pd(f.d);
   return '<span class="tag o" style="flex:none" title="避開個案不行的日子、要和上次／下次服務隔夠天數、不超過每月上限，並接在當天最後一位之後（含車程）">⭐ 最快可約 '+(f.d===today()?'今天':'週'+WD[dd.getDay()]+' '+fmtD(f.d))+' '+f.t+' 起</span>'
 }
+var wcask={};
+function clPanel(c,w){
+  var st=(w?wcask:cask)[c.id],P=w?'w':'';if(!st)return '';
+  var a=function(k,id,r){return 'data-act="'+P+k+'" data-id="'+id+'"'+(r!=null?' data-r="'+esc(r)+'"':'')};
+  if(st==='cc'&&ccx[c.id])return '<div class="cf"><div>最後確認：「'+esc(c.name)+'」於 <b>'+esc(ccx[c.id].m)+'</b> 結案，原因「<b>'+esc(ccx[c.id].r)+'</b>」。</div><div class="row" style="margin-top:8px"><button class="s p" '+a('cly',c.id)+'>確定結案</button><button class="s" '+a('clb',c.id)+'>返回修改</button><button class="s" '+a('clx',c.id)+'>取消</button></div></div>';
+  return '<div class="cf"><div>確定要結案「'+esc(c.name)+'」嗎？先選結案月份，再點選結案原因（下一步還會再確認）：</div><div class="row" style="margin-top:6px;align-items:center"><span>結案月份</span><input type="month" id="'+(w?'wcd_':'cd_')+c.id+'" value="'+((ccx[c.id]&&ccx[c.id].m)||today().slice(0,7))+'" style="width:auto"></div><div class="row" style="margin-top:6px">'+CLR.map(function(r){return '<button class="s" '+a('clr',c.id,r)+'>'+esc(r)+'</button>'}).join('')+'<button class="s" '+a('clx',c.id)+'>取消</button></div></div>';
+}
+function closeCase(c,w){
+  var mv=ccx[c.id].m,cd=mv===today().slice(0,7)?today():addD(addM(mv,1)+'-01',-1),due=addD(cd>today()?cd:today(),3);
+  delete (w?wcask:cask)[c.id];c.closed=true;c.closeDate=cd;c.closeReason=ccx[c.id].r;delete ccx[c.id];c.paused=false;delete c.pauseDate;delete c.pauseReason;
+  addAutoTodo(c,'結案報告',due);
+  showToast('✔ 已記為 '+mlab(cd.slice(0,7))+'結案，並新增待辦「'+esc(c.name)+' 結案報告」（'+fmtD(due)+' 前完成）');
+}
 function apRow(o,t){
   var c=o.c,x=o.x,st=x.status||'pending',id='data-id="'+c.id+'" data-a="'+x.id+'"',gm=chkGap(c,x.date,x.id,x.vid),badge='',acts='';
   if(st==='done')badge='<span class="tag o" style="flex:none">✔ 已服務</span>';
@@ -447,8 +464,9 @@ function apRow(o,t){
   var hints=prefCmp(c,x)+(gm?'<span class="tag w">⚠ '+esc(gm)+'</span>':'');
   if(st==='done'){var v0=c.visits.filter(function(v){return v.id===x.vid})[0];acts=recBtn(c,x.vid)+(v0&&v0.keyed?'<span class="addr" style="margin:0;font-size:12px">已 Key 申報，無法直接改回</span>':'<button class="s lk" data-act="wundone" '+id+'>↩ 改回未服務</button>')}
   else if(st==='missed')acts='<button class="s" data-act="wdone" '+id+'>改為已服務</button><button class="s lk" data-act="wunmiss" '+id+'>恢復待服務</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button>';
-  else acts=(x.cf?'':'<button class="s cfb" data-act="wcf" '+id+'>☐ 標記：家屬已確認</button>')+'<button class="s p" data-act="wdone" '+id+'>✔ 已服務</button><details class="apmn"><summary title="更多">⋯</summary><div class="apmb">'+(x.cf?'<button class="s lk" data-act="wcf" '+id+'>↩ 改回「尚未確認」</button>':'')+'<button class="s lk" data-act="wmiss" '+id+'>✖ 沒服務到</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button></div></details>';
-  return '<div class="apc '+(st==='done'?'done':st==='missed'?'miss':'pend'+(x.cf?'':' unc'))+'" data-ap="'+x.id+'" data-cid="'+c.id+'"'+(x.cf&&st==='pending'?' data-cf="1"':'')+'><div class="ap1">'+(x.cf&&st==='pending'?'<span class="dh lkd" title="家屬已確認，不能拖曳">🔒</span>':'<span class="dh" title="按住拖曳調整順序">⠿</span>')+timeBox(c,x)+zq(c)+'<b>'+esc(c.name)+'</b>'+(c.closed?'<span class="tag" style="flex:none">已結案</span>':'')+(st==='pending'?'<span class="cfp '+(x.cf?'ok':'w')+'">'+(x.cf?'✔ 家屬已確認':'⏳ 尚未跟家屬確認')+'</span>':'')+'<span class="apsp"></span>'+badge+'</div>'+(st==='pending'?'<div class="ap2 apinfo">'+fastTag(c,x.id)+prefTag(c)+'</div>':'')+(hints?'<div class="ap2">'+hints+'</div>':'')+'<div class="ap3">'+acts+'</div>'+(wmiss[x.id]?'<div style="font-size:13px;margin-top:8px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" '+id+' data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" '+id+'>返回</button></div>':'')+'</div>'
+  else acts=(x.cf?'':'<button class="s cfb" data-act="wcf" '+id+'>☐ 標記：家屬已確認</button>')+'<button class="s p" data-act="wdone" '+id+'>✔ 已服務</button><details class="apmn"><summary title="更多">⋯</summary><div class="apmb">'+(x.cf?'<button class="s lk" data-act="wcf" '+id+'>↩ 改回「尚未確認」</button>':'')+'<button class="s lk" data-act="wmiss" '+id+'>✖ 沒服務到</button><button class="s lk" data-act="wcan" '+id+'>取消預約</button>'+(c.closed?'':'<button class="s lk" data-act="wcl" '+id+'>結案</button>')+'</div></details>';
+  if(st!=='pending'&&!c.closed)acts+='<button class="s lk" data-act="wcl" '+id+'>結案</button>';
+  return '<div class="apc '+(st==='done'?'done':st==='missed'?'miss':'pend'+(x.cf?'':' unc'))+'" data-ap="'+x.id+'" data-cid="'+c.id+'"'+(x.cf&&st==='pending'?' data-cf="1"':'')+'><div class="ap1">'+(x.cf&&st==='pending'?'<span class="dh lkd" title="家屬已確認，不能拖曳">🔒</span>':'<span class="dh" title="按住拖曳調整順序">⠿</span>')+timeBox(c,x)+zq(c)+'<b class="lkn" data-act="wopen" data-id="'+c.id+'" title="點一下看個案資料">'+esc(c.name)+'</b>'+(c.closed?'<span class="tag" style="flex:none">已結案</span>':'')+(st==='pending'?'<span class="cfp '+(x.cf?'ok':'w')+'">'+(x.cf?'✔ 家屬已確認':'⏳ 尚未跟家屬確認')+'</span>':'')+'<span class="apsp"></span>'+badge+'</div>'+(st==='pending'?'<div class="ap2 apinfo">'+fastTag(c,x.id)+prefTag(c)+'</div>':'')+(hints?'<div class="ap2">'+hints+'</div>':'')+'<div class="ap3">'+acts+'</div>'+clPanel(c,true)+(wmiss[x.id]?'<div style="font-size:13px;margin-top:8px">未服務原因：'+REASONS.map(function(r){return '<button class="s" data-act="wmr" '+id+' data-r="'+r+'">'+r+'</button>'}).join(' ')+' <button class="s" data-act="wmback" '+id+'>返回</button></div>':'')+'</div>'
 }
 function tmin(t){var a=(t||'').split(':');return a.length<2?null:(+a[0])*60+(+a[1])}
 var tUndo=null,dayCache={},DR=null,wUnlock=false,lgOpen={};
@@ -554,6 +572,17 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function sorted(c){return c.visits.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0})}
 var openIds={};
 
+var focusCid=null,listHome=null;
+function openCase(id){
+  focusCid=id;openIds[id]=1;
+  var L=$('list');if(!listHome){listHome=document.createComment('list-home');L.parentNode.insertBefore(listHome,L)}
+  $('cbox').appendChild(L);$('cdlg').style.display='block';document.body.style.overflow='hidden';render();$('cdlg').scrollTop=0;
+}
+function closeCaseDlg(){
+  if(!focusCid)return;
+  focusCid=null;var L=$('list');if(listHome&&listHome.parentNode)listHome.parentNode.insertBefore(L,listHome.nextSibling);
+  $('cdlg').style.display='none';document.body.style.overflow='';render();
+}
 function render(){
   var q=document.getElementById("q").value.trim(),f=document.getElementById("f").value;
   var totV=0,totNo=0,curM=today().slice(0,7),B={u:{n:0,m:0,t:0},c:{n:0,m:0,t:0}};
@@ -621,19 +650,20 @@ function render(){
   $('nkl').innerHTML=nk||'<div class="addr">🎉 全部都已 Key 申報</div>';
   var h="",n=0,curS=null,cnt={};
   sortedCases().forEach(function(c){
+    if(focusCid&&c.id!==focusCid)return;
     var vs=sorted(c),nok=vs.filter(function(v){return!v.keyed&&!v.other}).length;
     var gs=c.goals||[],gd=gs.filter(function(g){return g.status==="已達成"}).length;
     var rc=vs.filter(inR).length,pm={},oc=vs.filter(function(v){return v.other}).length;
     var na=(c.appts||[]).filter(function(x){return x.date>=tdy&&(!x.status||x.status==='pending')}).sort(function(x,y){return x.date<y.date?-1:1})[0];
     vs.forEach(function(v){if(v.other)return;var m=v.date.slice(0,7);pm[m]=(pm[m]||0)+1});
     var pmh=Object.keys(pm).sort().map(function(m){return lab(m)+' '+pm[m]+' 次'}).join('、');
-    if(q&&(c.name+c.addr+(c.note||'')+(c.phone||'')+(c.agent||'')).indexOf(q)<0)return;
-    if(f==="nokey"&&!nok)return;
-    if(f==="open"&&(c.paused||c.closed||vs.length>=c.planned))return;
-    if(f==="active"&&(c.paused||c.closed))return;
-    if(f==="paused"&&(!c.paused||c.closed))return;
-    if(f==="unclosed"&&c.closed)return;
-    if(f==="closed"&&!c.closed)return;
+    if(!focusCid&&q&&(c.name+c.addr+(c.note||'')+(c.phone||'')+(c.agent||'')).indexOf(q)<0)return;
+    if(!focusCid&&f==="nokey"&&!nok)return;
+    if(!focusCid&&f==="open"&&(c.paused||c.closed||vs.length>=c.planned))return;
+    if(!focusCid&&f==="active"&&(c.paused||c.closed))return;
+    if(!focusCid&&f==="paused"&&(!c.paused||c.closed))return;
+    if(!focusCid&&f==="unclosed"&&c.closed)return;
+    if(!focusCid&&f==="closed"&&!c.closed)return;
     n++;
     var s=gk(c),gm=$('gb').value;cnt[s]=(cnt[s]||0)+1;
     if(gm!=='none'&&s!==curS){curS=s;h+='<div class="gh" style="font-size:14px;margin:16px 2px 6px"><b style="color:var(--tx)">'+esc(s)+'</b> '+(gm==='sn'?'姓':'')+'（<!--c:'+esc(s)+'-->位）</div>'}
@@ -657,7 +687,7 @@ function render(){
     var goalH=gs.length?'<div class="cg">'+gs.slice(0,2).map(function(g){return '<span class="gi">'+(g.status==="已達成"?'✔ <s style="color:var(--mut)">'+esc(g.text)+'</s>':(g.status==="需調整"?'⚠ ':'🎯 ')+esc(g.text))+'</span>'}).join('')+(gs.length>2?'<span class="gi" style="color:var(--mut)">… 另 '+(gs.length-2)+' 個目標</span>':'')+'</div>':'<div class="cg" style="color:var(--warn)">🎯 尚未設定目標</div>';
     var keyH=nok?'<div class="mk warn">⚠ '+nok+' 筆未申報</div>':(mineN>0?'<div class="mk ok">✔ 申報已完成</div>':'<div class="mk none">尚無可申報</div>');
     h+='<details class="'+(c.paused||c.closed?'paused':(nok?'nok':''))+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary>'+
-      '<div class="ch">'+zq(c)+'<span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+(skipW?'<span class="tag w">⏸ 本週暫停</span>':'')+'<button class="s sp" data-act="cl" data-id="'+c.id+'">'+(c.closed?'↩ 重新開案':'結案')+'</button></div>'+(cask[c.id]==='cl'?'<div class="cf"><div>確定要結案「'+esc(c.name)+'」嗎？先選結案月份，再點選結案原因（點選後立即結案）：</div><div class="row" style="margin-top:6px;align-items:center"><span>結案月份</span><input type="month" id="cd_'+c.id+'" value="'+today().slice(0,7)+'" style="width:auto"></div><div class="row" style="margin-top:6px">'+CLR.map(function(r){return '<button class="s" data-act="clr" data-id="'+c.id+'" data-r="'+r+'">'+r+'</button>'}).join('')+'<button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':cask[c.id]==='cc'?'<div class="cf"><div>最後確認：「'+esc(c.name)+'」於 <b>'+esc(ccx[c.id].m)+'</b> 結案，原因「<b>'+esc(ccx[c.id].r)+'</b>」。</div><div class="row" style="margin-top:8px"><button class="s p" data-act="cly" data-id="'+c.id+'">確定結案</button><button class="s" data-act="clb" data-id="'+c.id+'">返回修改</button><button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':'')+
+      '<div class="ch">'+zq(c)+'<span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+(skipW?'<span class="tag w">⏸ 本週暫停</span>':'')+'<button class="s sp" data-act="cl" data-id="'+c.id+'">'+(c.closed?'↩ 重新開案':'結案')+'</button></div>'+clPanel(c,false)+
       '<div class="cm"><div class="mc"><b>'+vs.length+'</b><span class="u"> / '+c.planned+' 次'+(oc?'（含他人 '+oc+'）':'')+'</span><div class="bar"><i style="width:'+pct+'%"></i></div></div><div class="chips">'+mqH+keyH+'</div></div>'+nxH+goalH+
       '<div class="cx ctg">'+xs.map(function(x){return '<span class="tg'+(x.indexOf('🚫')===0?' w':'')+'">'+x+'</span>'}).join('')+'</div></summary><div class="body">'+
       (aedit[c.id]?'<div style="margin-bottom:8px"><label>住址</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="ai_'+c.id+'" value="'+esc(c.addr||'')+'" placeholder="縣市區路段"></div><button class="p s" data-act="as" data-id="'+c.id+'">儲存</button><button class="s" data-act="ax" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📍 '+esc(c.addr||'（未填住址）')+'・'+esc(tw(c.addr))+' <button class="s" data-act="ae" data-id="'+c.id+'">✎ 編輯</button>'+(c.addr?' <button class="s" data-act="acp" data-id="'+c.id+'">📋 複製地址</button> <a class="btn" style="padding:5px 10px;font-size:12px" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(c.addr)+'">🗺 Google 地圖</a>':'')+'</div>')+
@@ -728,12 +758,7 @@ document.getElementById("list").addEventListener("click",function(e){
   if(act==="clx"){delete cask[c.id]}
   if(act==="clr"){var cdE0=document.getElementById('cd_'+c.id);ccx[c.id]={r:t.getAttribute('data-r')||'',m:(cdE0&&cdE0.value)||today().slice(0,7)};cask[c.id]='cc'}
   if(act==="clb"){cask[c.id]='cl'}
-  if(act==="cly"&&ccx[c.id]){
-    var mv=ccx[c.id].m,cd=mv===today().slice(0,7)?today():addD(addM(mv,1)+'-01',-1),due=addD(cd>today()?cd:today(),3);
-    delete cask[c.id];c.closed=true;c.closeDate=cd;c.closeReason=ccx[c.id].r;delete ccx[c.id];c.paused=false;delete c.pauseDate;delete c.pauseReason;
-    addAutoTodo(c,'結案報告',due);
-    showToast('✔ 已記為 '+mlab(cd.slice(0,7))+'結案，並新增待辦「'+esc(c.name)+' 結案報告」（'+fmtD(due)+' 前完成）');
-  }
+  if(act==="cly"&&ccx[c.id]){closeCase(c,false)}
   if(act==="tp"){
     if(c.paused){c.paused=false;delete c.pauseDate;delete c.pauseReason}
     else{c.paused=true;c.pauseDate=today();c.pauseReason=''}
@@ -930,10 +955,18 @@ function renderWeek(){
 $('wprev').onclick=function(){wOff--;renderWeek()};
 $('wnext').onclick=function(){wOff++;renderWeek()};
 $('wnow').onclick=function(){wOff=0;renderWeek()};
+$('cdlg').addEventListener('click',function(e){if(e.target===$('cdlg')||e.target===$('cbox')||e.target.id==='cdx')closeCaseDlg()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeCaseDlg()});
 $('wbody').onclick=function(e){
   var t=e.target,act=t.getAttribute&&t.getAttribute('data-act');if(!act||act==='wtime')return;
   var c=cs(t.getAttribute('data-id'));if(!c)return;
   if(act==='wadd'||act==='wo'){var v=$('wd_'+c.id).value;if(!v)return;var tm=bookTime(c),isO=act==='wo',gm=(naHit(c,v)?'🚫 這天個案不行：'+naHit(c,v):'')||chkGap(c,v)||chkQuota(c,v);if(gm){wpend[c.id]={date:v,msg:gm,other:isO,time:tm};renderWeek();return}delete wpend[c.id];delete tvals[c.id];delete c.pendNew;var na0={id:uid(),date:v};if(isO){na0.other=true;na0.by=lastBy(c)}if(tm)na0.time=tm;(c.appts=c.appts||[]).push(na0)}
+  else if(act==='wopen'){openCase(c.id);return}
+  else if(act==='wcl'){wcask[c.id]='cl'}
+  else if(act==='wclx'){delete wcask[c.id]}
+  else if(act==='wclb'){wcask[c.id]='cl'}
+  else if(act==='wclr'){var cw=document.getElementById('wcd_'+c.id);ccx[c.id]={r:t.getAttribute('data-r')||'',m:(cw&&cw.value)||today().slice(0,7)};wcask[c.id]='cc'}
+  else if(act==='wcly'){if(!ccx[c.id])return;closeCase(c,true)}
   else if(act==='wforce'){var pp=wpend[c.id];if(!pp)return;delete wpend[c.id];delete tvals[c.id];delete c.pendNew;var nb0={id:uid(),date:pp.date};if(pp.other){nb0.other=true;nb0.by=lastBy(c)}if(pp.time)nb0.time=pp.time;(c.appts=c.appts||[]).push(nb0)}
   else if(act==='wundone'){var uu=t.getAttribute('data-a');(c.appts||[]).forEach(function(x){if(x.id===uu){var v0=c.visits.filter(function(v){return v.id===x.vid})[0];if(v0&&v0.keyed&&!v0.other)return;c.visits=c.visits.filter(function(v){return v.id!==x.vid});delete x.status;delete x.vid}})}
   else if(act==='wrev'){var rv=t.getAttribute('data-v'),v1=c.visits.filter(function(v){return v.id===rv})[0];if(!v1||v1.keyed)return;c.visits=c.visits.filter(function(v){return v.id!==rv});(c.appts=c.appts||[]).push({id:uid(),date:v1.date})}
