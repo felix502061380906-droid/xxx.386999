@@ -319,7 +319,7 @@ body.dragging-now{user-select:none;-webkit-user-select:none;cursor:grabbing}
 </head>
 <body data-tab="case">
 <div id="fcModal" style="display:none;position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.45);overflow:auto;-webkit-overflow-scrolling:touch"><div class="card" id="fcBox" style="max-width:680px;margin:20px auto calc(24px + env(safe-area-inset-bottom,0px));padding:14px"><div class="row" style="align-items:center"><b style="font-size:17px">🔎 本週深入研究</b><span class="addr" id="fcwk" style="margin:0;flex:1;min-width:90px"></span><button class="s" id="fcp">◀</button><button class="s" id="fcn">▶</button><button class="s p" id="fcx">✕ 關閉</button></div><div id="fcbody"></div></div></div>
-<div id="rec" style="display:none;position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center"><div class="card" style="width:100%;max-width:560px;margin:0;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))"><div id="rect" style="font-weight:700;margin-bottom:2px"></div><div class="addr" style="margin:0 0 10px">只寫兩行，不評分、不判斷好壞。</div><label>我這次做了什麼</label><input id="recd" placeholder="例：練習椅子起身 10 次，把步行距離拉長"><label style="margin-top:8px">他有什麼反應</label><input id="recr" placeholder="例：第 7 次開始說腳痠，休息後可繼續"><div class="row" style="margin-top:12px"><button class="p" id="recs">儲存</button><button id="recx">之後再寫</button></div></div></div>
+<div id="rec" style="display:none;position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center"><div class="card" style="width:100%;max-width:560px;margin:0;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))"><div id="rect" style="font-weight:700;margin-bottom:2px"></div><div class="addr" style="margin:0 0 10px">簡短記錄就好，不評分、不判斷好壞。</div><label>我這次做了什麼</label><input id="recd" placeholder="例：練習椅子起身 10 次，把步行距離拉長"><label style="margin-top:8px">他有什麼反應</label><input id="recr" placeholder="例：第 7 次開始說腳痠，休息後可繼續"><label style="margin-top:8px">家屬回應</label><input id="recf" placeholder="例：女兒說晚上睡得比較好，想多練站立"><label style="margin-top:8px">備註</label><input id="recn" placeholder="其他想補充的事，可不填"><div class="row" style="margin-top:12px"><button class="p" id="recs">儲存</button><button id="recx">之後再寫</button></div></div></div>
 <div id="tp"><div class="tpbox"><div class="tpt" id="tpt"></div><div class="tpr" id="tpr"></div><div class="tph" id="tph2"></div><div class="tpcols"><div class="tpband"></div><div class="tpcol" id="tph"></div><div class="tpsep">:</div><div class="tpcol" id="tpm"></div></div><div class="tpact"><button id="tpc">清除</button><button id="tpx">取消</button><button class="p" id="tpo">確定</button></div></div></div>
 <div id="toast" style="display:none;position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:20;max-width:560px;margin:0 auto;background:var(--tx);color:var(--bg);border-radius:12px;padding:10px 14px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.25)"></div>
 <div class="wrap">
@@ -1517,22 +1517,22 @@ $('pwp').onclick=function(){wOff--;renderWeek();fillPick();$('pres').innerHTML='
 $('pwn').onclick=function(){wOff++;renderWeek();fillPick();$('pres').innerHTML=''};
 $('ppick').onchange=function(e){var id=e.target.getAttribute('data-p');if(!id)return;if(e.target.checked&&Object.keys(pSel).filter(function(k){return pSel[k]}).length>=8){e.target.checked=false;$('pres').innerHTML='<div class="note">一次最多 8 位。</div>';return}pSel[id]=e.target.checked;fillPick()};
 
-function recBtn(c,vid){var v=c.visits.filter(function(x){return x.id===vid})[0];if(!v||v.other)return '';return '<button class="s lk" data-act="wrec" data-id="'+c.id+'" data-v="'+vid+'">'+((v.did||v.resp)?'✎ 改記錄':'✎ 記兩行')+'</button>'}
-function recRow(c,v){return '<div class="rr"><div class="rd">'+fmtD(v.date)+'（週'+WD[pd(v.date).getDay()]+'）</div><input data-rec="did" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.did||'')+'" placeholder="我這次做了什麼"><input data-rec="resp" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.resp||'')+'" placeholder="他有什麼反應"></div>'}
+function recBtn(c,vid){var v=c.visits.filter(function(x){return x.id===vid})[0];if(!v||v.other)return '';return '<button class="s lk" data-act="wrec" data-id="'+c.id+'" data-v="'+vid+'">'+((v.did||v.resp||v.fam||v.vnote)?'✎ 改記錄':'✎ 記兩行')+'</button>'}
+function recRow(c,v){return '<div class="rr"><div class="rd">'+fmtD(v.date)+'（週'+WD[pd(v.date).getDay()]+'）</div><input data-rec="did" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.did||'')+'" placeholder="我這次做了什麼"><input data-rec="resp" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.resp||'')+'" placeholder="他有什麼反應"><input data-rec="fam" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.fam||'')+'" placeholder="家屬回應"><input data-rec="vnote" data-id="'+c.id+'" data-v="'+v.id+'" value="'+esc(v.vnote||'')+'" placeholder="備註"></div>'}
 $('list').addEventListener('input',function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-rec');if(!k)return;var c=cs(e.target.getAttribute('data-id'));if(!c)return;c.visits.forEach(function(v){if(v.id===e.target.getAttribute('data-v'))v[k]=e.target.value});save()});
 var recCtx=null;
-function openRec(cid,vid){var c=cs(cid),v=c&&c.visits.filter(function(x){return x.id===vid})[0];if(!v||v.other)return;recCtx={cid:cid,vid:vid};$('rect').textContent='✎ '+c.name+'　'+fmtD(v.date)+' 這次';$('recd').value=v.did||'';$('recr').value=v.resp||'';$('rec').style.display='flex';setTimeout(function(){$('recd').focus()},60)}
+function openRec(cid,vid){var c=cs(cid),v=c&&c.visits.filter(function(x){return x.id===vid})[0];if(!v||v.other)return;recCtx={cid:cid,vid:vid};$('rect').textContent='✎ '+c.name+'　'+fmtD(v.date)+' 這次';$('recd').value=v.did||'';$('recr').value=v.resp||'';$('recf').value=v.fam||'';$('recn').value=v.vnote||'';$('rec').style.display='flex';setTimeout(function(){$('recd').focus()},60)}
 function closeRec(){$('rec').style.display='none';recCtx=null}
 $('recx').onclick=closeRec;
 $('rec').onclick=function(e){if(e.target===$('rec'))closeRec()};
-$('recs').onclick=function(){if(recCtx){var c=cs(recCtx.cid),v=c&&c.visits.filter(function(x){return x.id===recCtx.vid})[0];if(v){v.did=$('recd').value.trim();v.resp=$('recr').value.trim();save();render()}}closeRec()};
+$('recs').onclick=function(){if(recCtx){var c=cs(recCtx.cid),v=c&&c.visits.filter(function(x){return x.id===recCtx.vid})[0];if(v){v.did=$('recd').value.trim();v.resp=$('recr').value.trim();v.fam=$('recf').value.trim();v.vnote=$('recn').value.trim();save();render()}}closeRec()};
 
 var FKEY='ltc_focus_v1',fcLog=[],fcSkip=0,FCQ=['他為什麼卡在這一步？','他對哪一種做法反應比較好？','什麼時候他比較願意動？','我做的哪一件事，他沒什麼反應？'];
 try{fcLog=JSON.parse(localStorage.getItem(FKEY)||'[]')||[]}catch(e){fcLog=[]}
 function fsave(){try{localStorage.setItem(FKEY,JSON.stringify(fcLog))}catch(e){}}
 function fcWk(){return ymd(wstart(wOff))}
 function fcRec(){var w=fcWk();return fcLog.filter(function(f){return f.wk===w})[0]}
-function myRecs(c){return sorted(c).filter(function(v){return!v.other&&(v.did||v.resp)})}
+function myRecs(c){return sorted(c).filter(function(v){return!v.other&&(v.did||v.resp||v.fam||v.vnote)})}
 function fcCands(){
   var recent={},lim=addD(fcWk(),-28);
   fcLog.forEach(function(f){if(f.wk>=lim&&f.wk!==fcWk())recent[f.cid]=1});
@@ -1569,7 +1569,7 @@ function renderFocus(){
       h+='<label style="margin-top:8px">我想知道的一件事（只問一個問題）</label><input id="fcq" value="'+esc(r.q)+'" placeholder="例：他為什麼卡在這一步？">';
       h+='<div class="row" style="margin-top:6px">'+FCQ.map(function(q){return '<button class="s lk" data-fc="q" data-q="'+q+'">'+q+'</button>'}).join('')+'</div>';
       var ev=myRecs(c).slice(-4).reverse();
-      h+='<div class="gh" style="margin-top:10px">可以參考的記錄（你寫的兩行）</div>'+(ev.length?ev.map(function(v){return '<div style="margin:4px 0;font-size:13px"><b>'+fmtD(v.date)+'</b>　做了：'+esc(v.did||'—')+'　／　反應：'+esc(v.resp||'—')+'</div>'}).join(''):'<div class="addr">還沒有記錄。每次服務後寫兩行，這裡就會出現。</div>');
+      h+='<div class="gh" style="margin-top:10px">可以參考的記錄（你寫的記錄）</div>'+(ev.length?ev.map(function(v){return '<div style="margin:4px 0;font-size:13px"><b>'+fmtD(v.date)+'</b>　做了：'+esc(v.did||'—')+'　／　反應：'+esc(v.resp||'—')+(v.fam?'　／　家屬：'+esc(v.fam):'')+(v.vnote?'　／　備註：'+esc(v.vnote):'')+'</div>'}).join(''):'<div class="addr">還沒有記錄。每次服務後寫兩行，這裡就會出現。</div>');
       if(SHOW_ICF)h+=icfHtml(c);
       h+='<label style="margin-top:10px">這週的發現（一兩句就好，可以之後再補）</label><textarea id="fca" rows="2">'+esc(r.a)+'</textarea><div class="row" style="margin-top:8px"><button class="s'+(r.done?'':' p')+'" data-fc="done">'+(r.done?'↩ 改回進行中':'✔ 完成這週的研究')+'</button></div>';
     }
