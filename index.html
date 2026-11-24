@@ -657,7 +657,7 @@ function render(){
     var goalH=gs.length?'<div class="cg">'+gs.slice(0,2).map(function(g){return '<span class="gi">'+(g.status==="已達成"?'✔ <s style="color:var(--mut)">'+esc(g.text)+'</s>':(g.status==="需調整"?'⚠ ':'🎯 ')+esc(g.text))+'</span>'}).join('')+(gs.length>2?'<span class="gi" style="color:var(--mut)">… 另 '+(gs.length-2)+' 個目標</span>':'')+'</div>':'<div class="cg" style="color:var(--warn)">🎯 尚未設定目標</div>';
     var keyH=nok?'<div class="mk warn">⚠ '+nok+' 筆未申報</div>':(mineN>0?'<div class="mk ok">✔ 申報已完成</div>':'<div class="mk none">尚無可申報</div>');
     h+='<details class="'+(c.paused||c.closed?'paused':(nok?'nok':''))+'" data-id="'+c.id+'"'+(openIds[c.id]?' open':'')+'><summary>'+
-      '<div class="ch">'+zq(c)+'<span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+(skipW?'<span class="tag w">⏸ 本週暫停</span>':'')+'<button class="s sp" data-act="cl" data-id="'+c.id+'">'+(c.closed?'↩ 重新開案':'結案')+'</button></div>'+(cask[c.id]==='cl'?'<div class="cf"><div>確定要結案「'+esc(c.name)+'」嗎？先選結案月份，再點選結案原因（點選後立即結案）：</div><div class="row" style="margin-top:6px;align-items:center"><span>結案月份</span><input type="month" id="cd_'+c.id+'" value="'+today().slice(0,7)+'" style="width:auto"></div><div class="row" style="margin-top:6px">'+CLR.map(function(r){return '<button class="s" data-act="clr" data-id="'+c.id+'" data-r="'+r+'">'+r+'</button>'}).join('')+'<button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':'')+
+      '<div class="ch">'+zq(c)+'<span class="nm">'+esc(c.name)+'</span>'+(c.closed?'<span class="tag">✔ 已結案</span>':c.paused?'<span class="tag w">⏸ 暫停中</span>':'')+(skipW?'<span class="tag w">⏸ 本週暫停</span>':'')+'<button class="s sp" data-act="cl" data-id="'+c.id+'">'+(c.closed?'↩ 重新開案':'結案')+'</button></div>'+(cask[c.id]==='cl'?'<div class="cf"><div>確定要結案「'+esc(c.name)+'」嗎？先選結案月份，再點選結案原因（點選後立即結案）：</div><div class="row" style="margin-top:6px;align-items:center"><span>結案月份</span><input type="month" id="cd_'+c.id+'" value="'+today().slice(0,7)+'" style="width:auto"></div><div class="row" style="margin-top:6px">'+CLR.map(function(r){return '<button class="s" data-act="clr" data-id="'+c.id+'" data-r="'+r+'">'+r+'</button>'}).join('')+'<button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':cask[c.id]==='cc'?'<div class="cf"><div>最後確認：「'+esc(c.name)+'」於 <b>'+esc(ccx[c.id].m)+'</b> 結案，原因「<b>'+esc(ccx[c.id].r)+'</b>」。</div><div class="row" style="margin-top:8px"><button class="s p" data-act="cly" data-id="'+c.id+'">確定結案</button><button class="s" data-act="clb" data-id="'+c.id+'">返回修改</button><button class="s" data-act="clx" data-id="'+c.id+'">取消</button></div></div>':'')+
       '<div class="cm"><div class="mc"><b>'+vs.length+'</b><span class="u"> / '+c.planned+' 次'+(oc?'（含他人 '+oc+'）':'')+'</span><div class="bar"><i style="width:'+pct+'%"></i></div></div><div class="chips">'+mqH+keyH+'</div></div>'+nxH+goalH+
       '<div class="cx ctg">'+xs.map(function(x){return '<span class="tg'+(x.indexOf('🚫')===0?' w':'')+'">'+x+'</span>'}).join('')+'</div></summary><div class="body">'+
       (aedit[c.id]?'<div style="margin-bottom:8px"><label>住址</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="ai_'+c.id+'" value="'+esc(c.addr||'')+'" placeholder="縣市區路段"></div><button class="p s" data-act="as" data-id="'+c.id+'">儲存</button><button class="s" data-act="ax" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📍 '+esc(c.addr||'（未填住址）')+'・'+esc(tw(c.addr))+' <button class="s" data-act="ae" data-id="'+c.id+'">✎ 編輯</button>'+(c.addr?' <button class="s" data-act="acp" data-id="'+c.id+'">📋 複製地址</button> <a class="btn" style="padding:5px 10px;font-size:12px" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(c.addr)+'">🗺 Google 地圖</a>':'')+'</div>')+
@@ -726,9 +726,11 @@ document.getElementById("list").addEventListener("click",function(e){
     else{cask[c.id]='cl'}
   }
   if(act==="clx"){delete cask[c.id]}
-  if(act==="clr"){
-    var cdE=document.getElementById('cd_'+c.id),mv=(cdE&&cdE.value)||today().slice(0,7),cd=mv===today().slice(0,7)?today():addD(addM(mv,1)+'-01',-1),due=addD(cd>today()?cd:today(),3);
-    delete cask[c.id];c.closed=true;c.closeDate=cd;c.closeReason=t.getAttribute('data-r')||'';c.paused=false;delete c.pauseDate;delete c.pauseReason;
+  if(act==="clr"){var cdE0=document.getElementById('cd_'+c.id);ccx[c.id]={r:t.getAttribute('data-r')||'',m:(cdE0&&cdE0.value)||today().slice(0,7)};cask[c.id]='cc'}
+  if(act==="clb"){cask[c.id]='cl'}
+  if(act==="cly"&&ccx[c.id]){
+    var mv=ccx[c.id].m,cd=mv===today().slice(0,7)?today():addD(addM(mv,1)+'-01',-1),due=addD(cd>today()?cd:today(),3);
+    delete cask[c.id];c.closed=true;c.closeDate=cd;c.closeReason=ccx[c.id].r;delete ccx[c.id];c.paused=false;delete c.pauseDate;delete c.pauseReason;
     addAutoTodo(c,'結案報告',due);
     showToast('✔ 已記為 '+mlab(cd.slice(0,7))+'結案，並新增待辦「'+esc(c.name)+' 結案報告」（'+fmtD(due)+' 前完成）');
   }
@@ -866,7 +868,7 @@ function setTab(t){closeFc();document.body.setAttribute('data-tab',t);Array.prot
 $('tabs').onclick=function(e){var b=e.target.closest&&e.target.closest('[data-tab]');if(b)setTab(b.getAttribute('data-tab'))};
 var st='case';try{st=localStorage.getItem('ltc_tab')||'case'}catch(e){}
 setTab(st);
-var cask={},CLR=['個案/家屬不需要','達成目標','轉介其他單位','住院／入住機構','搬遷','過世','其他'],pedit={},aedit={},wOff=0,wpend={},wmiss={},MINGAP=7,REASONS=['個案請假','個案不在家','住院/就醫','家屬取消','其他'];
+var ccx={},cask={},CLR=['個案/家屬不需要','達成目標','轉介其他單位','住院／入住機構','搬遷','過世','其他'],pedit={},aedit={},wOff=0,wpend={},wmiss={},MINGAP=7,REASONS=['個案請假','個案不在家','住院/就醫','家屬取消','其他'];
 function missTag(c){var s0=ymd(wstart(wOff)),s6=addD(s0,6);return (c.appts||[]).filter(function(x){return x.status==='missed'&&x.date>=s0&&x.date<=s6}).map(function(x){return ' <span class="tag w" style="flex:none">✖ '+fmtD(x.date)+' 未服務'+(x.reason?'：'+esc(x.reason):'')+'</span>'}).join('')}
 function addD(s,k){var d=pd(s);return ymd(new Date(d.getFullYear(),d.getMonth(),d.getDate()+k))}
 function chkGap(c,date,skipId,skipV){
