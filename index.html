@@ -1526,8 +1526,6 @@ function closeRec(){$('rec').style.display='none';recCtx=null}
 $('recx').onclick=closeRec;
 $('rec').onclick=function(e){if(e.target===$('rec'))closeRec()};
 $('recs').onclick=function(){if(recCtx){var c=cs(recCtx.cid),v=c&&c.visits.filter(function(x){return x.id===recCtx.vid})[0];if(v){v.did=$('recd').value.trim();v.resp=$('recr').value.trim();save();render()}}closeRec()};
-$('recd').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();$('recr').focus()}};
-$('recr').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();$('recs').click()}};
 
 var FKEY='ltc_focus_v1',fcLog=[],fcSkip=0,FCQ=['他為什麼卡在這一步？','他對哪一種做法反應比較好？','什麼時候他比較願意動？','我做的哪一件事，他沒什麼反應？'];
 try{fcLog=JSON.parse(localStorage.getItem(FKEY)||'[]')||[]}catch(e){fcLog=[]}
