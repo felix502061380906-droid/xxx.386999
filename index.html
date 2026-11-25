@@ -979,7 +979,10 @@ function renderWeek(){
   });
   if(!none.length)h+='<div class="addr">🎉 每位有在服務的個案本週都有安排</div>';
   if(pendL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">🆕 新案待安排 '+pendL.length+' 位（先不約，不列入沒約提醒）</div>'+pendL.map(function(c){var dflt=skipNA(c,(t>=a&&t<=b)?t:a,b);return '<div class="wr"><div class="wl1">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag o" style="flex:none">🆕 新案</span>'+prefTag(c)+'</div><div class="wl2"><input type="date" id="wd_'+c.id+'" value="'+dflt+'">'+tIn(c)+'<button class="s p" data-act="wadd" data-id="'+c.id+'">預約</button><button class="s lk" data-act="wnpx" data-id="'+c.id+'">取消標記</button></div></div>'}).join('')}
-  if(skipL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">⏸ 本週暫停一次 '+skipL.length+' 位</div>'+skipL.map(function(c){return '<div class="goal">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag w" style="flex:none">本週不服務</span><button class="s" data-act="wunskip" data-id="'+c.id+'">恢復</button></div>'}).join('')}
+  var pzL=cases.filter(function(c){return c.paused&&!c.closed&&c.remindOn}).sort(function(x,y){return x.remindOn<y.remindOn?-1:1});
+  if(skipL.length||pzL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">⏸ 暫停 '+(skipL.length+pzL.length)+' 位</div>'+
+    skipL.map(function(c){return '<div class="goal">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag w" style="flex:none">本週不服務</span><button class="s" data-act="wunskip" data-id="'+c.id+'">恢復</button></div>'}).join('')+
+    pzL.map(function(c){var dd=diff(t,c.remindOn),due=dd<=0;return '<div class="goal">'+zq(c)+'<b class="lkn" data-act="wopen" data-id="'+c.id+'">'+esc(c.name)+'</b><span class="tag'+(due?' w':'')+'" style="flex:none">'+(due?'該聯繫了 ':'提醒 ')+fmtD(c.remindOn)+'</span><button class="s" data-act="ctres" data-id="'+c.id+'">恢復</button></div>'}).join('')}
   $('tabs').querySelector('[data-tab="week"]').innerHTML='<i>📅</i><b>本週'+(none.length&&wOff===0?'<em>'+none.length+'</em>':'')+'</b>';
   $('wbody').innerHTML=h;$('wbody').classList.toggle('wun',wUnlock);freUpd(null,null);
   renderCt();renderFocus();
