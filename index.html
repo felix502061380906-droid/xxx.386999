@@ -242,6 +242,10 @@ input.lgi{width:68px;padding:5px 8px;font-size:13px;text-align:center;border-rad
 details.apmn{position:relative;display:inline-block;margin:0;border:none;background:transparent}
 #cdlg #list.t-case{display:block!important}
 #cdlg #list>details,#cdlg #list>.card{margin-top:0}
+.ctr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0}
+.ctr>summary{cursor:pointer;list-style:none;font-size:15px}.ctr>summary::-webkit-details-marker{display:none}
+.ctr[open]>summary{margin-bottom:6px}
+.ctrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.ctn{flex:1;min-width:0}.ctb{display:flex;flex-direction:column;gap:6px}
 .lkn{cursor:pointer;text-decoration:underline dotted;text-underline-offset:4px;text-decoration-color:var(--mut)}
 .apmn>summary{display:inline-block;padding:3px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:16px;line-height:1.3;cursor:pointer}
 .apmn>summary::after{content:none!important;display:none!important}
@@ -333,7 +337,7 @@ body.dragging-now{user-select:none;-webkit-user-select:none;cursor:grabbing}
 <div class="stats" id="stats"></div>
 <div class="t-todo"><div class="card" style="padding:12px"><div class="row" style="align-items:end"><div style="flex:1;min-width:200px"><label>新增待辦</label><input id="tdt" placeholder="例：回覆家屬、補登申報…（按 Enter 會先跟你確認）"></div><button class="p" id="tda">＋ 加入</button></div><div class="row" style="margin-top:8px;align-items:center" id="tdq"><button class="s" data-q="0">今天</button><button class="s" data-q="1">明天</button><button class="s" data-q="7">下週</button><input type="date" id="tdd" style="width:auto" title="到期日（可不填）"><select id="tdc" style="width:auto;max-width:150px"></select><label style="display:inline-flex;gap:4px;align-items:center;font-size:13px;color:var(--tx);margin:0"><input type="checkbox" id="tds" style="width:auto">⭐ 重要</label></div></div><div id="tdcf"></div><div id="tdl"></div></div>
 <div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="t-week card" id="fcTrig" style="padding:12px;margin-bottom:12px;cursor:pointer"><div class="row" style="align-items:center"><b>🔎 本週深入研究</b><span class="addr" id="fcsum" style="margin:0;flex:1;min-width:120px"></span><button class="s p" id="fcopen">開啟 ▸</button></div></div>
-<div class="stats" id="wsum"></div><div id="wbody"></div></div>
+<div class="stats" id="wsum"></div><div id="wct"></div><div id="wbody"></div></div>
 <details id="nokeyBox" class="t-stat" open><summary><span class="nm">⏳ 尚未 Key 申報清單</span><span class="tag">勾選即視為已 Key</span></summary><div class="body"><div id="nkl"></div></div></details>
 <details id="mqBox" class="t-stat" open><summary><span class="nm">📊 當月額度（已執行次數）</span></summary><div class="body"><div class="row"><div><label>月份</label><input type="month" id="mqm" placeholder="2026-11"></div></div><div id="mqtab" style="margin-top:10px"></div><div class="gh" style="margin-top:14px">各代碼每月上限（空白＝不限）</div><div id="cmq" class="row"></div><div class="note">CA07 一組 3 次，每月上限預設 3 次；有些個案額度只有 2 次，可到個案卡片展開後，在「每月上限」單獨設定。CB04 一組 6 次，預設不限。已執行次數＝已登記的服務（含他人服務），不含只是預約的。</div></div></details>
 <details id="xlBox" class="t-stat" open><summary><span class="nm">📤 匯出到 Excel（服務量調查）</span></summary><div class="body"><div class="row" style="align-items:end"><div><label>要填的月份</label><input type="month" id="xlm" placeholder="2026-11"></div></div><div id="xlsum" style="margin-top:10px"></div><div class="gh">① 「年度」工作表：各鄉鎮 × 服務代碼的服務次數</div><div class="row"><button class="p" id="xlc1">複製</button></div><div class="note" id="xlg1"></div><div id="xlpv"></div><div class="gh" style="margin-top:16px">② 「個案數統計」工作表</div><div id="xlcnt"></div><textarea id="xlta" rows="3" style="margin-top:8px;display:none"></textarea><div class="note" id="xlmsg"></div></div></details>
@@ -692,7 +696,7 @@ function render(){
       '<div class="cx ctg">'+xs.map(function(x){return '<span class="tg'+(x.indexOf('🚫')===0?' w':'')+'">'+x+'</span>'}).join('')+'</div></summary><div class="body">'+
       (aedit[c.id]?'<div style="margin-bottom:8px"><label>住址</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="ai_'+c.id+'" value="'+esc(c.addr||'')+'" placeholder="縣市區路段"></div><button class="p s" data-act="as" data-id="'+c.id+'">儲存</button><button class="s" data-act="ax" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📍 '+esc(c.addr||'（未填住址）')+'・'+esc(tw(c.addr))+' <button class="s" data-act="ae" data-id="'+c.id+'">✎ 編輯</button>'+(c.addr?' <button class="s" data-act="acp" data-id="'+c.id+'">📋 複製地址</button> <a class="btn" style="padding:5px 10px;font-size:12px" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(c.addr)+'">🗺 Google 地圖</a>':'')+'</div>')+
       (c.closed?'<div class="row" style="margin:2px 0 8px;align-items:end"><div><label>結案月份（可修改）</label><input type="month" data-act="ccm" data-id="'+c.id+'" value="'+esc((c.closeDate||'').slice(0,7))+'"></div>'+(c.closeReason?'<div class="addr" style="margin:0 0 8px">原因：'+esc(c.closeReason)+'</div>':'')+'</div>':'')+
-      (c.paused?'<div class="addr" style="color:var(--warn)">暫停日期：'+esc(c.pauseDate||"")+(c.pauseReason?'｜原因：'+esc(c.pauseReason):'')+'</div>':'')+
+      (c.paused?'<div class="addr" style="color:var(--warn)">暫停日期：'+esc(c.pauseDate||"")+(c.pauseReason?'｜原因：'+esc(c.pauseReason):'')+'</div><div class="addr">⏰ 提醒聯繫日 <input type="date" data-act="rmd" data-id="'+c.id+'" value="'+esc(c.remindOn||'')+'" style="width:auto;display:inline-block;padding:3px 6px"> <span style="opacity:.7">（到期會出現在週視圖的「該聯絡」，不用可清空）</span></div>':'')+
       (c.closed?'':'<div class="row" style="margin:4px 0 10px;align-items:end"><div><label>登記服務日期</label><input type="date" id="q_'+c.id+'" value="'+today()+'"></div><button class="p" data-act="avq" data-id="'+c.id+'">＋ 登記服務</button>'+((xcode(c)==='CB04'||oc)?'<div style="width:150px"><label>他人服務（雙專業）</label><input id="qo_'+c.id+'" placeholder="職類，例：物理治療師"></div><button class="s" data-act="avo" data-id="'+c.id+'">＋ 他人服務</button>':'')+'</div>')+
       (pedit[c.id]?'<div style="margin-bottom:8px"><label>聯絡電話（有多支可用頃號或逗號分隔）</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="pi_'+c.id+'" type="tel" inputmode="tel" value="'+esc(c.phone||'')+'" placeholder="例：0912-345-678、08-7654321"></div></div><label style="margin-top:6px">代理人電話</label><div class="row" style="align-items:center"><div style="flex:1;min-width:180px"><input id="pa_'+c.id+'" type="tel" inputmode="tel" value="'+esc(c.agent||'')+'" placeholder="可不填"></div><button class="p s" data-act="ps" data-id="'+c.id+'">儲存</button><button class="s" data-act="px" data-id="'+c.id+'">取消</button></div></div>':'<div class="addr" style="margin-bottom:6px;font-size:12px">📞 '+(c.phone?phLinks(c.phone):'（未填電話）')+(c.agent?'<br>👤 代理人　'+phLinks(c.agent):'')+' <button class="s" data-act="pe" data-id="'+c.id+'">✎ '+(c.phone?'編輯':'新增')+'</button></div>')+
       prefEdit(c)+
@@ -715,7 +719,7 @@ function render(){
     if(!vs.length)h+='<tr><td colspan="8" class="empty">還沒有服務紀錄</td></tr>';
     h+='</table></div><div class="row" style="margin-top:10px"><div><label>新增服務日期</label><input type="date" id="d_'+c.id+'" value="'+today()+'"></div>'+
       '<button class="p s" data-act="av" data-id="'+c.id+'">＋ 加入</button>'+
-      (c.closed?'':'<button class="s" data-act="tp" data-id="'+c.id+'">'+(c.paused?'恢復服務':'暫停個案')+'</button>')+
+      (c.closed?'':'<button class="s" data-act="tp" data-id="'+c.id+'">'+(c.paused?'恢復服務':'暫停個案')+'</button>')+(c.closed||c.paused?'':'<button class="s" data-act="tp2" data-id="'+c.id+'">⏸ 暫停・2 週後提醒</button>')+
       '<button class="s" data-act="cl" data-id="'+c.id+'">'+(c.closed?'重新開案':'結案')+'</button>'+
       ''+(cask[c.id]==='dc'?'<span class="tag w" style="flex:none">⚠ 刪除後無法復原</span><button class="s" data-act="dcy" data-id="'+c.id+'">確定刪除</button><button class="s" data-act="dcx" data-id="'+c.id+'">取消</button>':'<button class="s" data-act="dc" data-id="'+c.id+'">刪除此個案</button>')+'</div></div></details>';
   });
@@ -759,8 +763,9 @@ document.getElementById("list").addEventListener("click",function(e){
   if(act==="clr"){var cdE0=document.getElementById('cd_'+c.id);ccx[c.id]={r:t.getAttribute('data-r')||'',m:(cdE0&&cdE0.value)||today().slice(0,7)};cask[c.id]='cc'}
   if(act==="clb"){cask[c.id]='cl'}
   if(act==="cly"&&ccx[c.id]){closeCase(c,false)}
+  if(act==="tp2"){c.paused=true;c.pauseDate=today();c.pauseReason='';c.remindOn=addD(today(),14);showToast('⏸ 已暫停 <b>'+esc(c.name)+'</b>，'+fmtD(c.remindOn)+' 會提醒你聯繫')}
   if(act==="tp"){
-    if(c.paused){c.paused=false;delete c.pauseDate;delete c.pauseReason}
+    if(c.paused){c.paused=false;delete c.pauseDate;delete c.pauseReason;delete c.remindOn}
     else{c.paused=true;c.pauseDate=today();c.pauseReason=''}
     openIds[c.id]=1}
   if(act==="dc"){cask[c.id]='dc'}
@@ -907,6 +912,33 @@ function chkGap(c,date,skipId,skipV){
 }
 function wstart(off){var d=pd(today()),dow=(d.getDay()+6)%7;return new Date(d.getFullYear(),d.getMonth(),d.getDate()-dow+off*7)}
 function fmtD(s){var d=pd(s);return (d.getMonth()+1)+'/'+d.getDate()}
+function ctList(){
+  var t=today(),L=[];
+  cases.forEach(function(c){
+    if(c.closed)return;
+    if(c.ctSnz&&c.ctSnz>=t)return;
+    if(c.paused){if(c.remindOn&&c.remindOn<=t)L.push({c:c,why:'⏸ 暫停中，提醒日 '+fmtD(c.remindOn)+' 已到，該聯繫了',k:0,d:0,pz:1});return}
+    var fut=(c.appts||[]).filter(function(x){return x.date>=t&&!x.other&&(!x.status||x.status==='pending')}).sort(function(x,y){return x.date<y.date?-1:1});
+    var un=fut.filter(function(x){return!x.cf&&diff(t,x.date)<=7})[0];
+    if(un){L.push({c:c,why:'「'+fmtD(un.date)+'」的預約還沒跟家屬確認',k:1,d:diff(t,un.date)});return}
+    if(!fut.length){
+      var vs=sorted(c).filter(function(v){return!v.other}),last=vs.length?vs[vs.length-1].date:null;
+      var gap=last?diff(last,t):null;
+      if(gap===null||gap>=7)L.push({c:c,why:'目前沒有預約'+(gap===null?'，還沒服務過':'，距上次服務 '+gap+' 天'),k:2,d:gap===null?99:-gap});
+    }
+  });
+  L.sort(function(a,b){return a.k-b.k||a.d-b.d});
+  return L;
+}
+function renderCt(){
+  var L=ctList(),h='';
+  if(L.length){
+    h='<details class="ctr"'+(window.ctOpen?' open':'')+'><summary>📞 該聯絡 <b>'+L.length+'</b> 位<span class="addr" style="margin-left:6px">'+esc(L.slice(0,3).map(function(o){return o.c.name}).join('、')+(L.length>3?'…':''))+'</span></summary>'+
+    L.map(function(o){var c=o.c;return '<div class="ctrow"><div class="ctn"><b class="lkn" data-act="wopen" data-id="'+c.id+'">'+esc(c.name)+'</b><div class="addr">'+esc(o.why)+'</div><div class="addr">'+(c.phone?phLinks(c.phone):'（未填電話）')+(c.agent?'　👤 '+phLinks(c.agent):'')+'</div></div><div class="ctb">'+(o.pz?'<button class="s" data-act="ctres" data-id="'+c.id+'">恢復服務</button><button class="s" data-act="ct2w" data-id="'+c.id+'">再等 2 週</button>':'<button class="s" data-act="ctok" data-id="'+c.id+'">已聯絡</button>')+'</div></div>'}).join('')+
+    '<div class="addr" style="margin-top:6px">按「已聯絡」會先隱藏 2 天；家屬確認或排好預約後會自動消失。暫停個案則可選「恢復服務」或「再等 2 週」。</div></details>';
+  }
+  $('wct').innerHTML=h;
+}
 function renderWeek(){
   var s=wstart(wOff),days=[],i,t=today();
   for(i=0;i<7;i++)days.push(ymd(new Date(s.getFullYear(),s.getMonth(),s.getDate()+i)));
@@ -950,7 +982,7 @@ function renderWeek(){
   if(skipL.length){h+='<div class="gh" style="font-size:14px;margin-top:16px">⏸ 本週暫停一次 '+skipL.length+' 位</div>'+skipL.map(function(c){return '<div class="goal">'+zq(c)+'<b>'+esc(c.name)+'</b><span class="tag w" style="flex:none">本週不服務</span><button class="s" data-act="wunskip" data-id="'+c.id+'">恢復</button></div>'}).join('')}
   $('tabs').querySelector('[data-tab="week"]').innerHTML='<i>📅</i><b>本週'+(none.length&&wOff===0?'<em>'+none.length+'</em>':'')+'</b>';
   $('wbody').innerHTML=h;$('wbody').classList.toggle('wun',wUnlock);freUpd(null,null);
-  renderFocus();
+  renderCt();renderFocus();
 }
 $('wprev').onclick=function(){wOff--;renderWeek()};
 $('wnext').onclick=function(){wOff++;renderWeek()};
@@ -962,6 +994,9 @@ $('wbody').onclick=function(e){
   var c=cs(t.getAttribute('data-id'));if(!c)return;
   if(act==='wadd'||act==='wo'){var v=$('wd_'+c.id).value;if(!v)return;var tm=bookTime(c),isO=act==='wo',gm=(naHit(c,v)?'🚫 這天個案不行：'+naHit(c,v):'')||chkGap(c,v)||chkQuota(c,v);if(gm){wpend[c.id]={date:v,msg:gm,other:isO,time:tm};renderWeek();return}delete wpend[c.id];delete tvals[c.id];delete c.pendNew;var na0={id:uid(),date:v};if(isO){na0.other=true;na0.by=lastBy(c)}if(tm)na0.time=tm;(c.appts=c.appts||[]).push(na0)}
   else if(act==='wopen'){openCase(c.id);return}
+  else if(act==='ctok'){c.ctSnz=addD(today(),2)}
+  else if(act==='ctres'){c.paused=false;delete c.pauseDate;delete c.pauseReason;delete c.remindOn}
+  else if(act==='ct2w'){c.remindOn=addD(today(),14)}
   else if(act==='wcl'){wcask[c.id]='cl'}
   else if(act==='wclx'){delete wcask[c.id]}
   else if(act==='wclb'){wcask[c.id]='cl'}
@@ -992,6 +1027,9 @@ $('wbody').onclick=function(e){
   }
   save();render();
 };
+$('wct').onclick=$('wbody').onclick;
+$('list').addEventListener('change',function(e){var t=e.target;if(t.getAttribute&&t.getAttribute('data-act')==='rmd'){var c=cs(t.getAttribute('data-id'));if(c){c.remindOn=t.value||'';delete c.ctSnz;save();render()}}});
+$('wct').addEventListener('toggle',function(e){window.ctOpen=e.target.open},true);
 var pSel={};
 var TWC={'屏東市':[22.672,120.489],'潮州鎮':[22.551,120.540],'東港鎮':[22.467,120.454],'恆春鎮':[22.002,120.744],'萬丹鄉':[22.590,120.485],'長治鄉':[22.677,120.528],'麟洛鄉':[22.649,120.519],'九如鄉':[22.739,120.490],'里港鄉':[22.787,120.495],'鹽埔鄉':[22.746,120.573],'高樹鄉':[22.826,120.605],'萬巒鄉':[22.571,120.562],'內埔鄉':[22.612,120.567],'竹田鄉':[22.588,120.542],'新埤鄉':[22.469,120.546],'枋寮鄉':[22.365,120.594],'新園鄉':[22.544,120.457],'崁頂鄉':[22.513,120.513],'林邊鄉':[22.433,120.513],'南州鄉':[22.494,120.511],'佳冬鄉':[22.417,120.553],'琉球鄉':[22.343,120.370],'車城鄉':[22.072,120.711],'滿州鄉':[22.020,120.840],'枋山鄉':[22.261,120.659],'三地門鄉':[22.711,120.651],'霧台鄉':[22.738,120.729],'瑪家鄉':[22.677,120.646],'泰武鄉':[22.600,120.633],'來義鄉':[22.523,120.621],'春日鄉':[22.383,120.691],'獅子鄉':[22.215,120.738],'牡丹鄉':[22.125,120.803]};
 function tcen(a){var t=tw(a||'').replace('南洲','南州');return TWC[t]||null}
