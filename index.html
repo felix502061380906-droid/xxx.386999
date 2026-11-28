@@ -242,6 +242,7 @@ input.lgi{width:68px;padding:5px 8px;font-size:13px;text-align:center;border-rad
 details.apmn{position:relative;display:inline-block;margin:0;border:none;background:transparent}
 #cdlg #list.t-case{display:block!important}
 #cdlg #list>details,#cdlg #list>.card{margin-top:0}
+.rcr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px;border-top:1px solid var(--line);font-size:16px}
 .ctr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0}
 .ctr>summary{cursor:pointer;list-style:none;font-size:15px}.ctr>summary::-webkit-details-marker{display:none}
 .ctr[open]>summary{margin-bottom:6px}
@@ -338,12 +339,13 @@ body.dragging-now{user-select:none;-webkit-user-select:none;cursor:grabbing}
 <div class="t-todo"><div class="card" style="padding:12px"><div class="row" style="align-items:end"><div style="flex:1;min-width:200px"><label>新增待辦</label><input id="tdt" placeholder="例：回覆家屬、補登申報…（按 Enter 會先跟你確認）"></div><button class="p" id="tda">＋ 加入</button></div><div class="row" style="margin-top:8px;align-items:center" id="tdq"><button class="s" data-q="0">今天</button><button class="s" data-q="1">明天</button><button class="s" data-q="7">下週</button><input type="date" id="tdd" style="width:auto" title="到期日（可不填）"><select id="tdc" style="width:auto;max-width:150px"></select><label style="display:inline-flex;gap:4px;align-items:center;font-size:13px;color:var(--tx);margin:0"><input type="checkbox" id="tds" style="width:auto">⭐ 重要</label></div></div><div id="tdcf"></div><div id="tdl"></div></div>
 <div class="t-week"><div class="row" style="align-items:center;margin-bottom:10px"><button id="wprev">◀ 上週</button><div id="wlabel" style="flex:1;text-align:center;font-weight:600;min-width:140px"></div><button id="wnext">下週 ▶</button></div><div class="row" style="margin-bottom:10px"><button class="s" id="wnow">回到本週</button></div><div class="t-week card" id="fcTrig" style="padding:12px;margin-bottom:12px;cursor:pointer"><div class="row" style="align-items:center"><b>🔎 本週深入研究</b><span class="addr" id="fcsum" style="margin:0;flex:1;min-width:120px"></span><button class="s p" id="fcopen">開啟 ▸</button></div></div>
 <div class="stats" id="wsum"></div><div id="wct"></div><div id="wbody"></div></div>
+<details id="rcBox" class="t-stat" open><summary><span class="nm">📋 當月申報名單</span><span class="tag" id="rcsum"></span></summary><div class="body"><div class="row" style="align-items:center;margin-bottom:8px"><button class="s" id="rcprev">◀</button><input type="month" id="rcm" style="width:auto"><button class="s" id="rcnext">▶</button><button class="p" id="rccopy" style="margin-left:auto">📋 一鍵複製</button></div><div id="rclist"></div><details style="margin-top:8px"><summary class="addr" style="cursor:pointer">規則說明</summary><div class="note">① 成組核銷：該月完成一整組（例 CA07＝3 次）→ 只寫名字。② 沒成組的服務，最晚要在「服務月＋1 個月」核銷 → 寫「名字*次數」。③ 結案：結案當月把剩下的服務全部換算成次數核銷。④ 暫停（含住院）超過 1 個月：把沒成組的服務寫次數核銷。一組的次數已包含另一專業的服務（例：CB04 一組 6 次）。結案時剛好整組只寫名字。</div></details></div></details>
 <details id="nokeyBox" class="t-stat" open><summary><span class="nm">⏳ 尚未 Key 申報清單</span><span class="tag">勾選即視為已 Key</span></summary><div class="body"><div id="nkl"></div></div></details>
-<details id="mqBox" class="t-stat" open><summary><span class="nm">📊 當月額度（已執行次數）</span></summary><div class="body"><div class="row"><div><label>月份</label><input type="month" id="mqm" placeholder="2026-11"></div></div><div id="mqtab" style="margin-top:10px"></div><div class="gh" style="margin-top:14px">各代碼每月上限（空白＝不限）</div><div id="cmq" class="row"></div><div class="note">CA07 一組 3 次，每月上限預設 3 次；有些個案額度只有 2 次，可到個案卡片展開後，在「每月上限」單獨設定。CB04 一組 6 次，預設不限。已執行次數＝已登記的服務（含他人服務），不含只是預約的。</div></div></details>
-<details id="xlBox" class="t-stat" open><summary><span class="nm">📤 匯出到 Excel（服務量調查）</span></summary><div class="body"><div class="row" style="align-items:end"><div><label>要填的月份</label><input type="month" id="xlm" placeholder="2026-11"></div></div><div id="xlsum" style="margin-top:10px"></div><div class="gh">① 「年度」工作表：各鄉鎮 × 服務代碼的服務次數</div><div class="row"><button class="p" id="xlc1">複製</button></div><div class="note" id="xlg1"></div><div id="xlpv"></div><div class="gh" style="margin-top:16px">② 「個案數統計」工作表</div><div id="xlcnt"></div><textarea id="xlta" rows="3" style="margin-top:8px;display:none"></textarea><div class="note" id="xlmsg"></div></div></details>
-<details id="newBox" class="t-stat" open><summary><span class="nm">🆕 各月新案名單</span></summary><div class="body"><div id="newtab"></div><div class="note">規則：每位個案「第一次服務」的月份，自動算那個月的新案。如果他其實前一個月就可以服務，但因住院、生病等原因延後，可在個案卡片展開後的「🆕 新案月份」改成前一個月，也可以寫原因。手動修改的會標註「（手動）」。</div></div></details>
-<details id="twBox" class="t-stat" open><summary><span class="nm">📍 各鄉鎮市服務人次</span></summary><div class="body"><div class="row"><div><label>起始月</label><input type="month" id="tms" placeholder="2026-11"></div><div><label>結束月</label><input type="month" id="tme" placeholder="2026-11"></div></div><div class="tw" id="twtab" style="margin-top:10px"></div><div class="note">人次＝該期間內各個案的服務次數加總（例：2 位個案各服務 2 次＝4 人次）。鄉鎮市依住址判斷，住址沒寫到鄉鎮市的會歸在「未分類」。只計算已登記的服務紀錄。</div></div></details>
-<details id="monthBox" class="t-stat" open><summary><span class="nm">📅 每月服務次數</span></summary><div class="body"><div class="tw" id="mtab"></div><div class="note" id="mnote"></div><div class="gh">預估後續各月可申報次數</div><div class="tw" id="etab"></div><div class="row" style="margin-top:8px"><div style="width:200px"><label>沒有間隔資料時，預設服務間隔（天）</label><input id="eiv" type="number" min="1" value="7"></div></div><div class="note" id="enote"></div>
+<details id="mqBox" class="t-stat"><summary><span class="nm">📊 當月額度（已執行次數）</span></summary><div class="body"><div class="row"><div><label>月份</label><input type="month" id="mqm" placeholder="2026-11"></div></div><div id="mqtab" style="margin-top:10px"></div><div class="gh" style="margin-top:14px">各代碼每月上限（空白＝不限）</div><div id="cmq" class="row"></div><div class="note">CA07 一組 3 次，每月上限預設 3 次；有些個案額度只有 2 次，可到個案卡片展開後，在「每月上限」單獨設定。CB04 一組 6 次，預設不限。已執行次數＝已登記的服務（含他人服務），不含只是預約的。</div></div></details>
+<details id="xlBox" class="t-stat"><summary><span class="nm">📤 匯出到 Excel（服務量調查）</span></summary><div class="body"><div class="row" style="align-items:end"><div><label>要填的月份</label><input type="month" id="xlm" placeholder="2026-11"></div></div><div id="xlsum" style="margin-top:10px"></div><div class="gh">① 「年度」工作表：各鄉鎮 × 服務代碼的服務次數</div><div class="row"><button class="p" id="xlc1">複製</button></div><div class="note" id="xlg1"></div><div id="xlpv"></div><div class="gh" style="margin-top:16px">② 「個案數統計」工作表</div><div id="xlcnt"></div><textarea id="xlta" rows="3" style="margin-top:8px;display:none"></textarea><div class="note" id="xlmsg"></div></div></details>
+<details id="newBox" class="t-stat"><summary><span class="nm">🆕 各月新案名單</span></summary><div class="body"><div id="newtab"></div><div class="note">規則：每位個案「第一次服務」的月份，自動算那個月的新案。如果他其實前一個月就可以服務，但因住院、生病等原因延後，可在個案卡片展開後的「🆕 新案月份」改成前一個月，也可以寫原因。手動修改的會標註「（手動）」。</div></div></details>
+<details id="twBox" class="t-stat"><summary><span class="nm">📍 各鄉鎮市服務人次</span></summary><div class="body"><div class="row"><div><label>起始月</label><input type="month" id="tms" placeholder="2026-11"></div><div><label>結束月</label><input type="month" id="tme" placeholder="2026-11"></div></div><div class="tw" id="twtab" style="margin-top:10px"></div><div class="note">人次＝該期間內各個案的服務次數加總（例：2 位個案各服務 2 次＝4 人次）。鄉鎮市依住址判斷，住址沒寫到鄉鎮市的會歸在「未分類」。只計算已登記的服務紀錄。</div></div></details>
+<details id="monthBox" class="t-stat"><summary><span class="nm">📅 每月服務次數</span></summary><div class="body"><div class="tw" id="mtab"></div><div class="note" id="mnote"></div><div class="gh">預估後續各月可申報次數</div><div class="tw" id="etab"></div><div class="row" style="margin-top:8px"><div style="width:200px"><label>沒有間隔資料時，預設服務間隔（天）</label><input id="eiv" type="number" min="1" value="7"></div></div><div class="note" id="enote"></div>
 <div class="gh">各服務代碼每組次數（滿一組才可申報；數字可自行修改）</div><div id="csz" class="row"></div></div></details>
 
 <details id="addBox" class="t-case"><summary><span class="nm">＋ 新增個案</span></summary><div class="body"><div class="grid">
@@ -587,6 +589,41 @@ function closeCaseDlg(){
   focusCid=null;var L=$('list');if(listHome&&listHome.parentNode)listHome.parentNode.insertBefore(L,listHome.nextSibling);
   $('cdlg').style.display='none';document.body.style.overflow='';render();
 }
+var RCN=['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+function rcCalc(M){
+  var G=[],N=[];
+  cases.forEach(function(c){
+    var vs=sorted(c),S=csize(c),full=Math.floor(vs.length/S),i,gm=[];
+    for(i=1;i<=full;i++){if(vs[i*S-1].date.slice(0,7)===M)gm.push(vs.slice((i-1)*S,i*S))}
+    var L=vs.slice(full*S).filter(function(v){return v.date.slice(0,7)<=M});
+    var cm=c.closed?(c.closeDate||'').slice(0,7):'';
+    if(c.closed&&cm===M){var n=L.length;gm.forEach(function(g){n+=g.length});if(n){if(n%S===0)G.push({c:c,why:'結案・剛好成組'});else N.push({c:c,n:n,why:'結案'})}return}
+    if(c.closed&&cm&&M>cm)return;
+    if(gm.length)G.push({c:c});
+    if(L.length){
+      var T=addM(L[0].date.slice(0,7),1),why='未成組，期限到了';
+      if(c.paused&&c.pauseDate){var pt=addM(c.pauseDate.slice(0,7),1);if(pt<=T){T=pt;why='暫停超過 1 個月'}}
+      if(T===M)N.push({c:c,n:L.length,why:why});
+    }
+  });
+  return {G:G,N:N};
+}
+function rcText(M,R){
+  var h=RCN[+M.slice(5)-1]+'月核銷：';
+  return h+'\n'+R.G.map(function(o){return o.c.name}).concat(R.N.map(function(o){return o.c.name+'*'+o.n})).join('\n');
+}
+function renderRc(){
+  var m=$('rcm');if(!m)return;if(!m.value)m.value=today().slice(0,7);
+  var M=m.value,R=rcCalc(M),tot=R.G.length+R.N.length;
+  $('rcsum').textContent=tot+' 位';
+  $('rclist').innerHTML=tot?R.G.map(function(o){return '<div class="rcr"><b>'+esc(o.c.name)+'</b><span class="addr">'+esc(o.why||'成組')+'</span></div>'}).join('')+R.N.map(function(o){return '<div class="rcr"><b>'+esc(o.c.name)+'*'+o.n+'</b><span class="addr">'+esc(o.why)+'</span></div>'}).join(''):'<div class="addr">這個月沒有需要核銷的名單</div>';
+}
+function rcCopy(){
+  var M=$('rcm').value,t=rcText(M,rcCalc(M));
+  var ok=function(){showToast('✔ 已複製 '+RCN[+M.slice(5)-1]+'月核銷名單')};
+  var fb=function(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){showToast('複製失敗，請手動選取')}document.body.removeChild(a)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,fb);else fb();
+}
 function render(){
   var q=document.getElementById("q").value.trim(),f=document.getElementById("f").value;
   var totV=0,totNo=0,curM=today().slice(0,7),B={u:{n:0,m:0,t:0},c:{n:0,m:0,t:0}};
@@ -602,7 +639,7 @@ function render(){
   var pend=0;
   cases.forEach(function(c){var S=csize(c),vs=sorted(c),full=Math.floor(vs.length/S);vs.forEach(function(v,ix){if(!v.other&&Math.floor(ix/S)>=full)pend++});for(var i=1;i<=full;i++){var m=vs[i*S-1].date.slice(0,7),mine=vs.slice((i-1)*S,i*S).filter(function(v){return!v.other}).length;(mm[m]||(mm[m]={n:0,k:0,cs:{},g:0})).g+=mine}});
   $('mnote').textContent='可申報次數＝當月「完成整組」的次數合計（以該組最後一次服務的月份計，不論前幾次是否跨月）。目前未滿組、尚不可申報的服務共 '+pend+' 次。';
-  fillSizes();
+  fillSizes();renderRc();
   var est={},ivDef=parseInt($('eiv').value,10)||7,tdy=today();
   cases.forEach(function(c){
     if(c.closed||c.paused)return;
@@ -1031,6 +1068,7 @@ $('wbody').onclick=function(e){
   save();render();
 };
 $('wct').onclick=$('wbody').onclick;
+$('rcm').onchange=renderRc;$('rcprev').onclick=function(){$('rcm').value=addM($('rcm').value||today().slice(0,7),-1);renderRc()};$('rcnext').onclick=function(){$('rcm').value=addM($('rcm').value||today().slice(0,7),1);renderRc()};$('rccopy').onclick=rcCopy;
 $('list').addEventListener('change',function(e){var t=e.target;if(t.getAttribute&&t.getAttribute('data-act')==='rmd'){var c=cs(t.getAttribute('data-id'));if(c){c.remindOn=t.value||'';delete c.ctSnz;save();render()}}});
 $('wct').addEventListener('toggle',function(e){window.ctOpen=e.target.open},true);
 var pSel={};
